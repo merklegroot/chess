@@ -1,3 +1,6 @@
+# Generates chess opening images
+# This is mostly AI code.
+
 import chess
 import chess.svg
 import cairosvg
