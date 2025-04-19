@@ -29,11 +29,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# Generated chess images
-chess_openings/
-*.svg
-*.png
-
 # IDE specific files
 .idea/
 .vscode/
