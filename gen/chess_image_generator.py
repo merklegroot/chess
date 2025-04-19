@@ -3,7 +3,7 @@ import chess.svg
 import cairosvg
 from xml.etree import ElementTree as ET
 
-def generate_opening_image(name, fen, output_dir="chess_openings"):
+def generate_opening_image(name, fen, output_dir):
     """
     Generate an SVG and PNG image for a chess opening position.
     
@@ -23,6 +23,12 @@ def generate_opening_image(name, fen, output_dir="chess_openings"):
             rank = chess.square_rank(square) + 1  # Convert 0-7 to 1-8
             highest_rank = max(highest_rank, rank)
     
+    # Use exactly the highest rank without adding an extra one
+    visible_ranks = highest_rank
+    
+    # Print debugging information
+    print(f"{name}: Highest white piece on rank {highest_rank}, showing {visible_ranks} ranks")
+    
     # Generate SVG
     svg_board = chess.svg.board(
         board,
@@ -38,12 +44,7 @@ def generate_opening_image(name, fen, output_dir="chess_openings"):
     # Each rank is 50 pixels (400px / 8 ranks)
     pixels_per_rank = 400 / 8
     
-    # Add one rank above the highest piece for better visibility
-    visible_ranks = min(highest_rank + 1, 8)
-    
     # Calculate the y-coordinate for the viewBox (from bottom)
-    # For example, if highest_rank is 5, we want to show ranks 1-5 plus one extra
-    # So we'd show 6 ranks out of 8, starting at y=100 (skipping ranks 7-8)
     y_start = 400 - (visible_ranks * pixels_per_rank)
     height = visible_ranks * pixels_per_rank
     
@@ -61,4 +62,4 @@ def generate_opening_image(name, fen, output_dir="chess_openings"):
     
     # Convert to PNG
     png_path = f"{output_dir}/{name}.png"
-    cairosvg.svg2png(bytestring=modified_svg.encode('utf-8'), write_to=png_path) 
+    cairosvg.svg2png(bytestring=modified_svg.encode('utf-8'), write_to=png_path)
