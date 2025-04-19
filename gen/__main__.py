@@ -1,11 +1,9 @@
 # Generates chess opening images
 # This is mostly AI code.
 
-import chess
-import chess.svg
-import cairosvg
 import os
 import shutil
+from chess_image_generator import generate_opening_image
 
 # Dictionary of opening positions (only white pieces)
 openings = {
@@ -16,31 +14,16 @@ openings = {
     "English_Opening_white": "8/8/8/8/2P5/8/PP1PPPPP/RNBQKBNR w - - 0 1"
 }
 
+image_path = "../chess_openings"
+
 # Clean and recreate the output directory
-if os.path.exists("chess_openings"):
-    shutil.rmtree("chess_openings")
-os.makedirs("chess_openings")
+if os.path.exists(image_path):
+    shutil.rmtree(image_path)
+
+os.makedirs(image_path)
 
 # Generate images for each opening
 for name, fen in openings.items():
-    # Create board from FEN
-    board = chess.Board(fen)
-    
-    # Generate SVG
-    svg_board = chess.svg.board(
-        board,
-        size=400,
-        coordinates=True,
-        orientation=chess.WHITE  # Ensure board is oriented from White's perspective
-    )
-    
-    # Save as SVG
-    svg_path = f"chess_openings/{name}.svg"
-    with open(svg_path, "w") as f:
-        f.write(svg_board)
-    
-    # Convert to PNG
-    png_path = f"chess_openings/{name}.png"
-    cairosvg.svg2png(bytestring=svg_board.encode('utf-8'), write_to=png_path)
+    generate_opening_image(name, fen, image_path)
 
 print("White-only images generated in the 'chess_openings' directory!")
