@@ -15,14 +15,15 @@ function getWinner(result: string, white: string, black: string): string | null 
   }
 }
 
-export default async function GameDetailsPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function GameDetailsPage({ params }: PageProps) {
+  const { id } = await params;
   const repo = new ChessHistoryRepo();
   const games = await repo.getGames();
-  const game = games[parseInt(params.id)];
+  const game = games[parseInt(id)];
 
   if (!game) {
     return (
@@ -46,7 +47,7 @@ export default async function GameDetailsPage({
           <Link href="/game/list" className="text-blue-600 hover:text-blue-800">
             ← Back to Games
           </Link>
-          <AnalyzeButton gameId={params.id} />
+          <AnalyzeButton gameId={id} game={game} />
         </div>
 
         <h1 className="text-3xl font-bold mb-6">Game Details</h1>
