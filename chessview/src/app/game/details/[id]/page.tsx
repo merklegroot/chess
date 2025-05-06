@@ -1,5 +1,6 @@
 import { ChessHistoryRepo } from '@/repo/chessHistoryRepo';
 import Link from 'next/link';
+import AnalyzeButton from './AnalyzeButton';
 
 function getWinner(result: string, white: string, black: string): string | null {
   switch (result) {
@@ -41,10 +42,11 @@ export default async function GameDetailsPage({
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="bg-white shadow rounded-lg p-6">
-        <div className="mb-6">
-          <Link href="/game/list" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+        <div className="mb-6 flex justify-between items-center">
+          <Link href="/game/list" className="text-blue-600 hover:text-blue-800">
             ← Back to Games
           </Link>
+          <AnalyzeButton gameId={params.id} />
         </div>
 
         <h1 className="text-3xl font-bold mb-6">Game Details</h1>
