@@ -32,7 +32,8 @@ export class ChessHistoryRepo {
 
   private parsePGN(content: string): chessGameModel[] {
     const games: chessGameModel[] = [];
-    const gameBlocks = content.split('\n\n\n').filter(block => block.trim());
+    // Split on double newline followed by a metadata line (starts with [)
+    const gameBlocks = content.split(/\n\n(?=\[)/).filter(block => block.trim());
     
     for (const block of gameBlocks) {
       try {
