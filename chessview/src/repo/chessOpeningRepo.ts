@@ -17,7 +17,7 @@ export class ChessOpeningRepo {
     return ChessOpeningRepo.instance;
   }
 
-  public getAllOpenings(): ChessOpening[] {
+  public list(): ChessOpening[] {
     if (openingsCache) {
       return openingsCache;
     }
@@ -44,17 +44,17 @@ export class ChessOpeningRepo {
   }
 
   public getOpeningById(id: string): ChessOpening | undefined {
-    const openings = this.getAllOpenings();
+    const openings = this.list();
     return openings.find(opening => opening.eco === id);
   }
 
   public getOpeningsByEcoPrefix(prefix: string): ChessOpening[] {
-    const openings = this.getAllOpenings();
+    const openings = this.list();
     return openings.filter(opening => opening.eco.startsWith(prefix));
   }
 
-  public getOpeningsByCategory(): Record<string, ChessOpening[]> {
-    const openings = this.getAllOpenings();
+  public listOpeningsByCategory(): Record<string, ChessOpening[]> {
+    const openings = this.list();
     const categories: Record<string, ChessOpening[]> = {};
 
     for (const opening of openings) {
@@ -69,7 +69,7 @@ export class ChessOpeningRepo {
   }
 
   public getOpeningsByMainName(): Record<string, ChessOpening[]> {
-    const openings = this.getAllOpenings();
+    const openings = this.list();
     const mainOpenings: Record<string, ChessOpening[]> = {};
 
     for (const opening of openings) {
