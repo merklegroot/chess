@@ -1,20 +1,23 @@
-import { allBooks } from '@/constants/books/allBooks';
 import Link from 'next/link';
+import { getOpeningById, getOpeningsByMainName } from '@/utils/openings';
 
 interface PageProps {
   params: { id: string };
 }
 
 export default function BookDetailsPage({ params }: PageProps) {
-  const book = allBooks[parseInt(params.id)];
+  const opening = getOpeningById(params.id);
+  const mainOpenings = getOpeningsByMainName();
+  const mainName = opening ? opening.name.split(/[:,]/)[0].trim() : '';
+  const variations = opening ? mainOpenings[mainName]?.filter(v => v.eco !== opening.eco) : [];
 
-  if (!book) {
+  if (!opening) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white shadow rounded-lg p-4">
-          <h1 className="text-2xl font-bold mb-4">Book Not Found</h1>
+          <h1 className="text-2xl font-bold mb-4">Opening Not Found</h1>
           <Link href="/book/list" className="text-blue-600 hover:text-blue-800">
-            ← Back to Books
+            ← Back to Openings
           </Link>
         </div>
       </div>
@@ -26,29 +29,40 @@ export default function BookDetailsPage({ params }: PageProps) {
       <div className="bg-white shadow rounded-lg p-6">
         <div className="mb-6 flex justify-between items-center">
           <Link href="/book/list" className="text-blue-600 hover:text-blue-800">
-            ← Back to Books
+            ← Back to Openings
           </Link>
         </div>
 
-        <h1 className="text-3xl font-bold mb-6">{book.title}</h1>
+        <h1 className="text-3xl font-bold mb-2">{opening.name}</h1>
+        <div className="text-gray-600 mb-6">ECO: {opening.eco}</div>
 
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-2">Base Moves</h2>
+            <h2 className="text-xl font-semibold mb-2">Moves</h2>
             <div className="bg-gray-50 p-3 rounded">
-              <div className="font-mono text-sm">{book.baseMoves.join(' ')}</div>
+              <div className="font-mono text-sm">{opening.pgn}</div>
             </div>
           </div>
 
-          {book.variants && book.variants.length > 0 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-2">Position</h2>
+            <div className="bg-gray-50 p-3 rounded">
+              <div className="font-mono text-sm">{opening.epd}</div>
+            </div>
+          </div>
+
+          {variations.length > 0 && (
             <div>
-              <h2 className="text-xl font-semibold mb-2">Variants</h2>
+              <h2 className="text-xl font-semibold mb-2">Related Variations</h2>
               <div className="space-y-4">
-                {book.variants.map((variant) => (
-                  <div key={variant.id} className="bg-gray-50 p-4 rounded">
-                    <h3 className="text-lg font-medium mb-2">{variant.title}</h3>
+                {variations.map((variation) => (
+                  <div key={variation.eco} className="bg-gray-50 p-4 rounded">
+                    <h3 className="text-lg font-medium mb-2">{variation.name}</h3>
+                    <div className="text-sm text-gray-600 mb-2">
+                      ECO: {variation.eco}
+                    </div>
                     <div className="font-mono text-sm">
-                      {[...book.baseMoves, ...variant.movesAfterBase].join(' ')}
+                      {variation.pgn}
                     </div>
                   </div>
                 ))}

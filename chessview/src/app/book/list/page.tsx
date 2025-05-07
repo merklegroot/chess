@@ -1,24 +1,39 @@
-import React from 'react';
 import Link from 'next/link';
-import { allBooks } from '@/constants/books/allBooks';
+import { getOpeningsByCategory } from '@/utils/openings';
+import EcoItemInfo from '@/components/EcoItemInfo';
 
-export default function BookList() {
+export default function BookListPage() {
+  const categories = getOpeningsByCategory();
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Chess Books</h1>
-      <div className="space-y-4">
-        {allBooks.map((book, index) => (
-          <Link 
-            key={index}
-            href={`/book/details/${index}`}
-            className="block bg-white shadow rounded-lg p-4 hover:bg-gray-50 transition-colors"
-          >
-            <h2 className="text-xl font-semibold mb-2">{book.title}</h2>
-            <div className="text-sm text-gray-600">
-              Base moves: {book.baseMoves.join(' ')}
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="bg-white shadow rounded-lg p-6">
+        <h1 className="text-3xl font-bold mb-6">Chess Openings</h1>
+
+        <div className="space-y-8">
+          {Object.entries(categories).map(([category, openings]) => (
+            <div key={category}>
+              <EcoItemInfo eco={category} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {openings.map((opening) => (
+                  <Link
+                    key={`${opening.eco}-${opening.pgn}`}
+                    href={`/book/details/${opening.eco}`}
+                    className="block p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="font-medium">{opening.name}</div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      ECO: {opening.eco}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1 font-mono">
+                      {opening.pgn}
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </Link>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
