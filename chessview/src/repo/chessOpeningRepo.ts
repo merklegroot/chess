@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import { ChessOpening } from '@/models/openings';
+import { chessOpeningModel } from '@/models/chessOpeningModel';
 
 // Cache for the openings data
-let openingsCache: ChessOpening[] | null = null;
+let openingsCache: chessOpeningModel[] | null = null;
 
 export class ChessOpeningRepo {
   private static instance: ChessOpeningRepo;
@@ -17,12 +17,12 @@ export class ChessOpeningRepo {
     return ChessOpeningRepo.instance;
   }
 
-  public list(): ChessOpening[] {
+  public list(): chessOpeningModel[] {
     if (openingsCache) {
       return openingsCache;
     }
 
-    const openings: ChessOpening[] = [];
+    const openings: chessOpeningModel[] = [];
     const files = ['a.tsv', 'b.tsv', 'c.tsv', 'd.tsv', 'e.tsv'];
 
     for (const file of files) {
@@ -35,7 +35,17 @@ export class ChessOpeningRepo {
         if (!line.trim()) continue;
         
         const [eco, name, pgn, uci, epd] = line.split('\t');
-        openings.push({ eco, name, pgn, uci, epd });
+        const { mainOpening, variation, subVariation } = this.parseOpeningName(name);
+        openings.push({ 
+          eco, 
+          name, 
+          pgn, 
+          uci, 
+          epd,
+          mainOpening,
+          variation,
+          subVariation
+        });
       }
     }
 
@@ -43,19 +53,34 @@ export class ChessOpeningRepo {
     return openings;
   }
 
-  public getOpeningById(id: string): ChessOpening | undefined {
+  private parseOpeningName(name: string): { mainOpening: string; variation?: string; subVariation?: string } {
+    const parts = name.split(':').map(part => part.trim());
+    const mainOpening = parts[0];
+    
+    if (parts.length === 1) {
+      return { mainOpening };
+    }
+
+    const subParts = parts[1].split(',').map(part => part.trim());
+    const variation = subParts[0];
+    const subVariation = subParts.length > 1 ? subParts[1] : undefined;
+
+    return { mainOpening, variation, subVariation };
+  }
+
+  public getOpeningById(id: string): chessOpeningModel | undefined {
     const openings = this.list();
     return openings.find(opening => opening.eco === id);
   }
 
-  public getOpeningsByEcoPrefix(prefix: string): ChessOpening[] {
+  public getOpeningsByEcoPrefix(prefix: string): chessOpeningModel[] {
     const openings = this.list();
     return openings.filter(opening => opening.eco.startsWith(prefix));
   }
 
-  public listOpeningsByCategory(): Record<string, ChessOpening[]> {
+  public listOpeningsByCategory(): Record<string, chessOpeningModel[]> {
     const openings = this.list();
-    const categories: Record<string, ChessOpening[]> = {};
+    const categories: Record<string, chessOpeningModel[]> = {};
 
     for (const opening of openings) {
       const category = opening.eco[0];
@@ -68,9 +93,9 @@ export class ChessOpeningRepo {
     return categories;
   }
 
-  public getOpeningsByMainName(): Record<string, ChessOpening[]> {
+  public getOpeningsByMainName(): Record<string, chessOpeningModel[]> {
     const openings = this.list();
-    const mainOpenings: Record<string, ChessOpening[]> = {};
+    const mainOpenings: Record<string, chessOpeningModel[]> = {};
 
     for (const opening of openings) {
       const mainName = this.getMainOpeningName(opening.name);
