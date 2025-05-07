@@ -7,7 +7,8 @@ interface PageProps {
 
 export default async function BookDetailsPage({ params }: PageProps) {
   const repo = ChessOpeningRepo.getInstance();
-  const opening = repo.getOpeningById(params.id);
+  const openings = repo.list();
+  const opening = openings.find(o => o.id === params.id);
   const mainOpenings = repo.getOpeningsByMainName();
   const mainName = opening ? opening.name.split(/[:,]/)[0].trim() : '';
   const variations = opening ? mainOpenings[mainName]?.filter(v => v.eco !== opening.eco) : [];

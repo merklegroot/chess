@@ -30,7 +30,7 @@ function OpeningListItem({ opening }: { opening: chessOpeningModel }) {
     <div className="block p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
       <div className="flex items-start justify-between">
         <Link
-          href={`/book/details/${opening.eco}`}
+          href={`/book/details/${opening.id}`}
           className="flex-grow"
         >
           <div className="font-medium">{opening.name}</div>
