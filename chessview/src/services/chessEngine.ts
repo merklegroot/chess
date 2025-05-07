@@ -93,26 +93,34 @@ export class ChessEngineService {
   async analyzeGame(game: Chess): Promise<AnalysisResult[]> {
     const results: AnalysisResult[] = [];
     const moves = game.history();
+    const tempGame = new Chess();
 
     for (let i = 0; i < moves.length; i++) {
-      const move = moves[i];
-      const position = new Chess();
-      
-      // Load the game up to the current move
+      // Load the position before the current move
       const pgn = moves.slice(0, i).join(' ');
       if (pgn) {
-        position.loadPgn(pgn);
+        tempGame.loadPgn(pgn);
       }
 
-      const { evaluation, bestMove } = await this.analyzePosition(position.fen());
+      // Get the evaluation before making the move
+      const { evaluation: beforeEval, bestMove } = await this.analyzePosition(tempGame.fen());
       
-      // Consider a move a blunder if it's significantly worse than the best move
-      const isBlunder = Math.abs(evaluation) > 2.0;
+      // Make the actual move
+      tempGame.move(moves[i]);
+      
+      // Get the evaluation after making the move
+      const { evaluation: afterEval } = await this.analyzePosition(tempGame.fen());
+      
+      // A move is a blunder if it significantly worsens the position
+      // We consider it a blunder if the evaluation changes by more than 2.0 in the wrong direction
+      const isBlunder = Math.abs(afterEval - beforeEval) > 2.0 && 
+        ((beforeEval > 0 && afterEval < beforeEval) || // White's position got worse
+         (beforeEval < 0 && afterEval > beforeEval));  // Black's position got worse
 
       results.push({
         moveNumber: Math.floor(i / 2) + 1,
-        move: move,
-        evaluation,
+        move: moves[i],
+        evaluation: afterEval,
         bestMove,
         isBlunder
       });

@@ -22,9 +22,6 @@ export default function AnalyzeButton({ gameId, game }: AnalyzeButtonProps) {
       // Create a new Chess instance and load the moves
       const chessGame = new Chess();
       
-      // Debug: Log the moves array
-      console.log('Game moves:', game.moves);
-      
       // Load the game using PGN format
       const pgn = game.moves.join(' ');
       try {
@@ -76,15 +73,20 @@ export default function AnalyzeButton({ gameId, game }: AnalyzeButtonProps) {
                   result.isBlunder ? 'bg-red-100' : 'bg-white'
                 }`}
               >
-                <div className="font-mono">
-                  {result.moveNumber}. {result.move}
-                  {result.isBlunder && (
-                    <span className="ml-2 text-red-600">⚠️ Blunder</span>
-                  )}
+                <div className="font-mono flex items-center justify-between">
+                  <span>
+                    {result.moveNumber}. {result.move}
+                    {result.isBlunder && (
+                      <span className="ml-2 text-red-600">⚠️ Blunder</span>
+                    )}
+                  </span>
+                  <span className={`text-sm ${result.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {result.evaluation > 0 ? '+' : ''}{result.evaluation.toFixed(2)}
+                  </span>
                 </div>
                 {result.isBlunder && (
                   <div className="text-sm text-gray-600 mt-1">
-                    Best move: {result.bestMove} (eval: {result.evaluation.toFixed(2)})
+                    Best move: {result.bestMove}
                   </div>
                 )}
               </div>
