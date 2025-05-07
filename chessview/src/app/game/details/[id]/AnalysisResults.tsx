@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Chess } from 'chess.js';
 import ChessBoard from '@/components/ChessBoard';
+import { openings } from '@/constants/openings';
 
 interface AnalysisResult {
   moveNumber: number;
@@ -17,66 +18,6 @@ interface AnalysisResultsProps {
   analysis: AnalysisResult[];
   game: any; // TODO: Type this properly
 }
-
-// Comprehensive opening database
-const openings: { [key: string]: string } = {
-  // First moves
-  'e4': 'King\'s Pawn Game',
-  'd4': 'Queen\'s Pawn Game',
-  'c4': 'English Opening',
-  'Nf3': 'Reti Opening',
-  'b3': 'Nimzo-Larsen Attack',
-  'g3': 'King\'s Indian Attack',
-  'f4': 'Bird\'s Opening',
-  
-  // King's Pawn responses
-  'e4 e5': 'Open Game',
-  'e4 c5': 'Sicilian Defense',
-  'e4 e6': 'French Defense',
-  'e4 d6': 'Pirc Defense',
-  'e4 d5': 'Scandinavian Defense',
-  'e4 g6': 'Modern Defense',
-  'e4 Nf6': 'Alekhine\'s Defense',
-  
-  // Queen's Pawn responses
-  'd4 d5': 'Queen\'s Gambit',
-  'd4 Nf6': 'Indian Defense',
-  'd4 d6': 'Old Indian Defense',
-  'd4 g6': 'King\'s Indian Defense',
-  'd4 e6': 'Queen\'s Indian Defense',
-  
-  // Open Game continuations
-  'e4 e5 Nf3': 'King\'s Knight Opening',
-  'e4 e5 Bc4': 'Bishop\'s Opening',
-  'e4 e5 d4': 'Center Game',
-  'e4 e5 f4': 'King\'s Gambit',
-  
-  // Ruy Lopez and variations
-  'e4 e5 Nf3 Nc6 Bb5': 'Ruy Lopez',
-  'e4 e5 Nf3 Nc6 Bb5 a6': 'Ruy Lopez, Morphy Defense',
-  'e4 e5 Nf3 Nc6 Bb5 d6': 'Ruy Lopez, Steinitz Defense',
-  'e4 e5 Nf3 Nc6 Bb5 Nf6': 'Ruy Lopez, Berlin Defense',
-  'e4 e5 Nf3 Nc6 Bb5 f5': 'Ruy Lopez, Schliemann Defense',
-  'e4 e5 Nf3 Nc6 Bb5 Bc5': 'Ruy Lopez, Classical Defense',
-  'e4 e5 Nf3 Nc6 Bb5 d5': 'Ruy Lopez, Open Defense',
-  
-  // Italian Game and variations
-  'e4 e5 Nf3 Nc6 Bc4': 'Italian Game',
-  'e4 e5 Nf3 Nc6 Bc4 Bc5': 'Italian Game, Giuoco Piano',
-  'e4 e5 Nf3 Nc6 Bc4 Bc5 b4': 'Italian Game, Evans Gambit',
-  'e4 e5 Nf3 Nc6 Bc4 Nf6': 'Italian Game, Two Knights Defense',
-  
-  // Scotch Game
-  'e4 e5 Nf3 Nc6 d4': 'Scotch Game',
-  'e4 e5 Nf3 Nc6 d4 exd4 Nxd4': 'Scotch Game, Classical Variation',
-  
-  // Other common openings
-  'c4 e5': 'English Opening',
-  'Nf3 d5': 'Reti Opening',
-  'b3 e5': 'Nimzo-Larsen Attack',
-  'g3 d5': 'King\'s Indian Attack',
-  'f4 d5': 'Bird\'s Opening',
-};
 
 export default function AnalysisResults({ analysis, game }: AnalysisResultsProps) {
   const [selectedMoveIndex, setSelectedMoveIndex] = useState<number | null>(null);
