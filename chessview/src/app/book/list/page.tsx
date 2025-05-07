@@ -1,9 +1,10 @@
 import Link from 'next/link';
-import { getOpeningsByCategory } from '@/utils/openings';
+import { ChessOpeningRepo } from '@/repo/chessOpeningRepo';
 import EcoItemInfo from '@/components/EcoItemInfo';
 
 export default function BookListPage() {
-  const categories = getOpeningsByCategory();
+  const repo = ChessOpeningRepo.getInstance();
+  const categories = repo.getOpeningsByCategory();
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -14,6 +15,9 @@ export default function BookListPage() {
           {Object.entries(categories).map(([category, openings]) => (
             <div key={category}>
               <EcoItemInfo eco={category} />
+              <h2 className="text-2xl font-semibold mb-4">
+                Category {category.toUpperCase()}
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {openings.map((opening) => (
                   <Link

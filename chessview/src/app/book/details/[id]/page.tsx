@@ -1,13 +1,14 @@
 import Link from 'next/link';
-import { getOpeningById, getOpeningsByMainName } from '@/utils/openings';
+import { ChessOpeningRepo } from '@/repo/chessOpeningRepo';
 
 interface PageProps {
   params: { id: string };
 }
 
 export default function BookDetailsPage({ params }: PageProps) {
-  const opening = getOpeningById(params.id);
-  const mainOpenings = getOpeningsByMainName();
+  const repo = ChessOpeningRepo.getInstance();
+  const opening = repo.getOpeningById(params.id);
+  const mainOpenings = repo.getOpeningsByMainName();
   const mainName = opening ? opening.name.split(/[:,]/)[0].trim() : '';
   const variations = opening ? mainOpenings[mainName]?.filter(v => v.eco !== opening.eco) : [];
 
