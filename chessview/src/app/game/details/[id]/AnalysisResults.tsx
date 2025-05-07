@@ -16,8 +16,14 @@ interface AnalysisResultsProps {
 }
 
 export default function AnalysisResults({ analysis, game }: AnalysisResultsProps) {
-  const getPieceSymbol = (move: string, chessGame: Chess) => {
+  const getPieceSymbol = (move: string, chessGame: Chess, moveIndex: number) => {
     try {
+      // Load the game state up to this move
+      const pgn = game.moves.slice(0, moveIndex).join(' ');
+      if (pgn) {
+        chessGame.loadPgn(pgn);
+      }
+      
       const moveObj = chessGame.move(move);
       if (moveObj) {
         const piece = moveObj.piece;
@@ -45,43 +51,73 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
     return { symbol: '?', color: 'w' };
   };
 
+  // Group moves into pairs (white and black)
+  const movePairs = [];
+  for (let i = 0; i < analysis.length; i += 2) {
+    const whiteMove = analysis[i];
+    const blackMove = analysis[i + 1];
+    movePairs.push({ whiteMove, blackMove });
+  }
+
   return (
     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
       <h3 className="font-semibold mb-2">Analysis Results</h3>
-      <div className="space-y-2">
-        {analysis.map((result, index) => {
+      <div className="space-y-1">
+        {movePairs.map((pair, index) => {
           const chessGame = new Chess();
-          const pgn = game.moves.slice(0, index).join(' ');
-          if (pgn) {
-            chessGame.loadPgn(pgn);
-          }
-          const { symbol, color } = getPieceSymbol(result.move, chessGame);
+          
+          const whiteSymbol = getPieceSymbol(pair.whiteMove.move, chessGame, index * 2);
+          const blackSymbol = pair.blackMove ? getPieceSymbol(pair.blackMove.move, chessGame, index * 2 + 1) : null;
           
           return (
             <div 
               key={index}
-              className={`p-2 rounded ${
-                result.isBlunder ? 'bg-red-100' : 'bg-white'
-              }`}
+              className="p-2 rounded bg-white font-mono text-sm"
             >
-              <div className="font-mono flex items-center justify-between">
-                <span>
-                  {result.moveNumber}.{' '}
-                  <span className={`inline-block w-6 text-center ${color === 'w' ? 'text-gray-800' : 'text-gray-600'}`}>
-                    {symbol}
-                  </span>{' '}
-                  {result.move}
-                  {result.isBlunder && (
-                    <span className="ml-2 text-red-600">⚠️ Blunder</span>
+              <div className="flex items-center gap-4">
+                {/* Move number */}
+                <span className="w-8 text-gray-500">{pair.whiteMove.moveNumber}.</span>
+                
+                {/* White's move */}
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block w-6 text-center ${whiteSymbol.color === 'w' ? 'text-gray-800' : 'text-gray-600'}`}>
+                    {whiteSymbol.symbol}
+                  </span>
+                  <span>{pair.whiteMove.move}</span>
+                  {pair.whiteMove.isBlunder && (
+                    <span className="text-red-600">⚠️</span>
                   )}
-                </span>
-                <span className={`text-sm ${result.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {result.evaluation > 0 ? '+' : ''}{result.evaluation.toFixed(2)}
-                </span>
+                  <span className={`${pair.whiteMove.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {pair.whiteMove.evaluation > 0 ? '+' : ''}{pair.whiteMove.evaluation.toFixed(2)}
+                  </span>
+                </div>
+                
+                {/* Black's move */}
+                {pair.blackMove && blackSymbol && (
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-block w-6 text-center ${blackSymbol.color === 'w' ? 'text-gray-800' : 'text-gray-600'}`}>
+                      {blackSymbol.symbol}
+                    </span>
+                    <span>{pair.blackMove.move}</span>
+                    {pair.blackMove.isBlunder && (
+                      <span className="text-red-600">⚠️</span>
+                    )}
+                    <span className={`${pair.blackMove.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {pair.blackMove.evaluation > 0 ? '+' : ''}{pair.blackMove.evaluation.toFixed(2)}
+                    </span>
+                  </div>
+                )}
               </div>
-              {result.isBlunder && (
-                <div className="text-sm text-gray-600 mt-1">
-                  Best move: {result.bestMove}
+              
+              {/* Blunder information */}
+              {(pair.whiteMove.isBlunder || (pair.blackMove && pair.blackMove.isBlunder)) && (
+                <div className="text-xs text-gray-600 mt-1 ml-12">
+                  {pair.whiteMove.isBlunder && (
+                    <div>Best: {pair.whiteMove.bestMove}</div>
+                  )}
+                  {pair.blackMove?.isBlunder && (
+                    <div>Best: {pair.blackMove.bestMove}</div>
+                  )}
                 </div>
               )}
             </div>
