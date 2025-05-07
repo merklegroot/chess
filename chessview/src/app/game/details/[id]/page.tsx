@@ -47,7 +47,6 @@ export default async function GameDetailsPage({ params }: PageProps) {
           <Link href="/game/list" className="text-blue-600 hover:text-blue-800">
             ← Back to Games
           </Link>
-          <AnalyzeButton gameId={id} game={game} />
         </div>
 
         <h1 className="text-3xl font-bold mb-6">Game Details</h1>
@@ -118,6 +117,10 @@ export default async function GameDetailsPage({ params }: PageProps) {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="mt-8">
+          <AnalyzeButton gameId={id} game={game} />
         </div>
       </div>
     </div>
