@@ -38,8 +38,20 @@ export class ChessHistoryRepo {
     for (const block of gameBlocks) {
       try {
         const [metadata, moves] = block.split('\n\n');
-        const game: Partial<chessGameModel> = {
-          moves: [] // Initialize moves as empty array
+        const game: chessGameModel = {
+          event: '',
+          site: '',
+          date: '',
+          round: '',
+          white: '',
+          black: '',
+          result: '',
+          whiteElo: '',
+          blackElo: '',
+          timeControl: '',
+          endTime: '',
+          termination: '',
+          moves: []
         };
         
         // Parse metadata
@@ -56,20 +68,36 @@ export class ChessHistoryRepo {
         // Parse moves
         if (moves) {
           const moveText = moves.trim();
-          // Remove move numbers and clock annotations
+          // Remove clock annotations and normalize whitespace
           const cleanMoves = moveText
-            .replace(/\d+\./g, '') // Remove move numbers
             .replace(/\{[^}]*\}/g, '') // Remove clock annotations
             .replace(/\s+/g, ' ') // Normalize whitespace
-            .trim()
-            .split(' ')
-            .filter(move => move && move !== '1-0' && move !== '0-1' && move !== '1/2-1/2');
+            .trim();
           
-          game.moves = cleanMoves;
+          // Split into individual moves, handling move numbers properly
+          const moveTokens = cleanMoves.split(' ');
+          const parsedMoves: string[] = [];
+          
+          for (let i = 0; i < moveTokens.length; i++) {
+            const token = moveTokens[i];
+            // Skip move numbers (e.g., "1.", "1...")
+            if (token.match(/^\d+\.{1,3}$/)) {
+              continue;
+            }
+            // Skip game results
+            if (token === '1-0' || token === '0-1' || token === '1/2-1/2') {
+              continue;
+            }
+            if (token) {
+              parsedMoves.push(token);
+            }
+          }
+          
+          game.moves = parsedMoves;
         }
         
         if (this.isValidGame(game)) {
-          games.push(game as chessGameModel);
+          games.push(game);
         }
       } catch (error) {
         console.error('Error parsing game block:', error);

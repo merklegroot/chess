@@ -6,6 +6,7 @@ interface AnalysisResult {
   evaluation: number;
   bestMove: string;
   isBlunder: boolean;
+  bookMoves: string[]; // List of book moves at this position
 }
 
 export class ChessEngineService {
@@ -115,6 +116,9 @@ export class ChessEngineService {
       // Get the evaluation before making the move
       const { evaluation: beforeEval, bestMove } = await this.analyzePosition(tempGame.fen());
       
+      // Get book moves for this position
+      const bookMoves = await this.getBookMoves(tempGame.fen());
+      
       // Make the actual move
       tempGame.move(moves[i]);
       
@@ -132,11 +136,38 @@ export class ChessEngineService {
         move: moves[i],
         evaluation: afterEval,
         bestMove,
-        isBlunder
+        isBlunder,
+        bookMoves
       });
     }
 
     return results;
+  }
+
+  private async getBookMoves(fen: string): Promise<string[]> {
+    const response = await this.sendCommand(`position fen ${fen}\ngo book`);
+    const lines = response.split('\n');
+    const bookMoves: string[] = [];
+
+    for (const line of lines) {
+      try {
+        const jsonResponse = JSON.parse(line);
+        if (jsonResponse.type === 'uci:response') {
+          const payload = jsonResponse.payload;
+          if (payload.startsWith('info string book')) {
+            const moveMatch = payload.match(/book move: (\w+)/);
+            if (moveMatch) {
+              bookMoves.push(moveMatch[1]);
+            }
+          }
+        }
+      } catch (e) {
+        // Skip lines that aren't valid JSON
+        continue;
+      }
+    }
+
+    return bookMoves;
   }
 
   disconnect() {

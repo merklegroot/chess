@@ -8,6 +8,7 @@ interface AnalysisResult {
   evaluation: number;
   bestMove: string;
   isBlunder: boolean;
+  bookMoves: string[];
 }
 
 interface AnalysisResultsProps {
@@ -172,6 +173,18 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
                   )}
                   {pair.blackMove?.isBlunder && (
                     <div>Best: {pair.blackMove.bestMove}</div>
+                  )}
+                </div>
+              )}
+              
+              {/* Book moves information */}
+              {(pair.whiteMove.bookMoves?.length > 0 || (pair.blackMove && pair.blackMove.bookMoves?.length > 0)) && (
+                <div className="text-xs text-blue-600 mt-1 ml-12">
+                  {pair.whiteMove.bookMoves?.length > 0 && (
+                    <div>Book: {pair.whiteMove.bookMoves.join(', ')}</div>
+                  )}
+                  {pair.blackMove?.bookMoves?.length > 0 && (
+                    <div>Book: {pair.blackMove.bookMoves.join(', ')}</div>
                   )}
                 </div>
               )}
