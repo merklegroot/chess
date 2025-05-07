@@ -18,6 +18,66 @@ interface AnalysisResultsProps {
   game: any; // TODO: Type this properly
 }
 
+// Comprehensive opening database
+const openings: { [key: string]: string } = {
+  // First moves
+  'e4': 'King\'s Pawn Game',
+  'd4': 'Queen\'s Pawn Game',
+  'c4': 'English Opening',
+  'Nf3': 'Reti Opening',
+  'b3': 'Nimzo-Larsen Attack',
+  'g3': 'King\'s Indian Attack',
+  'f4': 'Bird\'s Opening',
+  
+  // King's Pawn responses
+  'e4 e5': 'Open Game',
+  'e4 c5': 'Sicilian Defense',
+  'e4 e6': 'French Defense',
+  'e4 d6': 'Pirc Defense',
+  'e4 d5': 'Scandinavian Defense',
+  'e4 g6': 'Modern Defense',
+  'e4 Nf6': 'Alekhine\'s Defense',
+  
+  // Queen's Pawn responses
+  'd4 d5': 'Queen\'s Gambit',
+  'd4 Nf6': 'Indian Defense',
+  'd4 d6': 'Old Indian Defense',
+  'd4 g6': 'King\'s Indian Defense',
+  'd4 e6': 'Queen\'s Indian Defense',
+  
+  // Open Game continuations
+  'e4 e5 Nf3': 'King\'s Knight Opening',
+  'e4 e5 Bc4': 'Bishop\'s Opening',
+  'e4 e5 d4': 'Center Game',
+  'e4 e5 f4': 'King\'s Gambit',
+  
+  // Ruy Lopez and variations
+  'e4 e5 Nf3 Nc6 Bb5': 'Ruy Lopez',
+  'e4 e5 Nf3 Nc6 Bb5 a6': 'Ruy Lopez, Morphy Defense',
+  'e4 e5 Nf3 Nc6 Bb5 d6': 'Ruy Lopez, Steinitz Defense',
+  'e4 e5 Nf3 Nc6 Bb5 Nf6': 'Ruy Lopez, Berlin Defense',
+  'e4 e5 Nf3 Nc6 Bb5 f5': 'Ruy Lopez, Schliemann Defense',
+  'e4 e5 Nf3 Nc6 Bb5 Bc5': 'Ruy Lopez, Classical Defense',
+  'e4 e5 Nf3 Nc6 Bb5 d5': 'Ruy Lopez, Open Defense',
+  
+  // Italian Game and variations
+  'e4 e5 Nf3 Nc6 Bc4': 'Italian Game',
+  'e4 e5 Nf3 Nc6 Bc4 Bc5': 'Italian Game, Giuoco Piano',
+  'e4 e5 Nf3 Nc6 Bc4 Bc5 b4': 'Italian Game, Evans Gambit',
+  'e4 e5 Nf3 Nc6 Bc4 Nf6': 'Italian Game, Two Knights Defense',
+  
+  // Scotch Game
+  'e4 e5 Nf3 Nc6 d4': 'Scotch Game',
+  'e4 e5 Nf3 Nc6 d4 exd4 Nxd4': 'Scotch Game, Classical Variation',
+  
+  // Other common openings
+  'c4 e5': 'English Opening',
+  'Nf3 d5': 'Reti Opening',
+  'b3 e5': 'Nimzo-Larsen Attack',
+  'g3 d5': 'King\'s Indian Attack',
+  'f4 d5': 'Bird\'s Opening',
+};
+
 export default function AnalysisResults({ analysis, game }: AnalysisResultsProps) {
   const [selectedMoveIndex, setSelectedMoveIndex] = useState<number | null>(null);
   const [currentFen, setCurrentFen] = useState<string>('');
@@ -30,6 +90,29 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
       chessGame.loadPgn(moves.join(' '));
       setCurrentFen(chessGame.fen());
     }
+  };
+
+  const getOpeningAtMove = (moveIndex: number): string => {
+    const chessGame = new Chess();
+    const moves = game.moves.slice(0, moveIndex + 1);
+    if (moves.length > 0) {
+      chessGame.loadPgn(moves.join(' '));
+    }
+    const history = chessGame.history({ verbose: true });
+    const moveSequence = history.map(move => move.san).join(' ');
+    
+    // Find the longest matching opening
+    let longestMatch = '';
+    let longestMatchName = '';
+    
+    for (const [pattern, name] of Object.entries(openings)) {
+      if (moveSequence.startsWith(pattern) && pattern.length > longestMatch.length) {
+        longestMatch = pattern;
+        longestMatchName = name;
+      }
+    }
+    
+    return longestMatchName || 'Unknown Opening';
   };
 
   const getPieceSymbol = (move: string, chessGame: Chess, moveIndex: number) => {
@@ -75,55 +158,13 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
     movePairs.push({ whiteMove, blackMove });
   }
 
-  // Get opening information
-  const chessGame = new Chess();
-  const pgn = game.moves.join(' ');
-  if (pgn) {
-    chessGame.loadPgn(pgn);
-  }
-  const opening = chessGame.history({ verbose: true }).slice(0, 10); // Get first 10 moves for opening detection
-  const openingMoves = opening.map(move => move.san).join(' ');
-  
-  // Common opening patterns
-  const openings: { [key: string]: string } = {
-    'e4 e5': 'Open Game',
-    'e4 c5': 'Sicilian Defense',
-    'e4 e6': 'French Defense',
-    'e4 d6': 'Pirc Defense',
-    'e4 d5': 'Scandinavian Defense',
-    'd4 d5': 'Queen\'s Gambit',
-    'd4 Nf6': 'Indian Defense',
-    'd4 d6': 'Old Indian Defense',
-    'c4 e5': 'English Opening',
-    'Nf3 d5': 'Reti Opening',
-    'b3 e5': 'Nimzo-Larsen Attack',
-    'g3 d5': 'King\'s Indian Attack',
-    'f4 d5': 'Bird\'s Opening',
-    'e4 g6': 'Modern Defense',
-    'd4 g6': 'King\'s Indian Defense',
-    'c4 Nf6': 'English Opening',
-    'Nf3 c5': 'Sicilian Defense',
-    'e4 Nf6': 'Alekhine\'s Defense',
-    'd4 e6': 'Queen\'s Indian Defense',
-    'c4 e6': 'English Defense',
-  };
-
-  // Find the matching opening
-  let detectedOpening = 'Unknown Opening';
-  for (const [pattern, name] of Object.entries(openings)) {
-    if (openingMoves.startsWith(pattern)) {
-      detectedOpening = name;
-      break;
-    }
-  }
-
   return (
     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
       <h3 className="font-semibold mb-2">Analysis Results</h3>
       
       {/* Opening information */}
       <div className="mb-4 text-sm text-gray-600">
-        Opening: {detectedOpening}
+        Opening: {getOpeningAtMove(game.moves.length - 1)}
       </div>
 
       {/* Chess board */}
@@ -146,6 +187,9 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
           
           const whiteSymbol = getPieceSymbol(pair.whiteMove.move, chessGame, index * 2);
           const blackSymbol = pair.blackMove ? getPieceSymbol(pair.blackMove.move, chessGame, index * 2 + 1) : null;
+          
+          const whiteOpening = getOpeningAtMove(index * 2);
+          const blackOpening = pair.blackMove ? getOpeningAtMove(index * 2 + 1) : null;
           
           return (
             <div 
@@ -171,6 +215,7 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
                   <span className={`w-16 text-right ${pair.whiteMove.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {pair.whiteMove.evaluation > 0 ? '+' : ''}{pair.whiteMove.evaluation.toFixed(2)}
                   </span>
+                  <span className="text-xs text-gray-500 ml-2">{whiteOpening}</span>
                 </div>
                 
                 {/* Black's move */}
@@ -189,6 +234,7 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
                     <span className={`w-16 text-right ${pair.blackMove.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {pair.blackMove.evaluation > 0 ? '+' : ''}{pair.blackMove.evaluation.toFixed(2)}
                     </span>
+                    <span className="text-xs text-gray-500 ml-2">{blackOpening}</span>
                   </div>
                 )}
               </div>
