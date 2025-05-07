@@ -50,18 +50,18 @@ export default function AnalyzeButton({ gameId, game }: AnalyzeButtonProps) {
         const color = moveObj.color;
         chessGame.undo(); // Undo the move to maintain the game state
         
-        // Map piece types to symbols
-        const pieceSymbols: { [key: string]: string } = {
-          'p': '♟',
-          'n': '♞',
-          'b': '♝',
-          'r': '♜',
-          'q': '♛',
-          'k': '♚'
+        // Map piece types to symbols for both colors
+        const pieceSymbols: { [key: string]: { w: string, b: string } } = {
+          'p': { w: '♙', b: '♟' },
+          'n': { w: '♘', b: '♞' },
+          'b': { w: '♗', b: '♝' },
+          'r': { w: '♖', b: '♜' },
+          'q': { w: '♕', b: '♛' },
+          'k': { w: '♔', b: '♚' }
         };
         
         return {
-          symbol: pieceSymbols[piece] || piece,
+          symbol: pieceSymbols[piece]?.[color] || piece,
           color: color
         };
       }
