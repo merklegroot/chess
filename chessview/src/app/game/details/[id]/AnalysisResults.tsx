@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { Chess } from 'chess.js';
+import ChessBoard from '@/components/ChessBoard';
 
 interface AnalysisResult {
   moveNumber: number;
@@ -17,6 +19,19 @@ interface AnalysisResultsProps {
 }
 
 export default function AnalysisResults({ analysis, game }: AnalysisResultsProps) {
+  const [selectedMoveIndex, setSelectedMoveIndex] = useState<number | null>(null);
+  const [currentFen, setCurrentFen] = useState<string>('');
+
+  const handleMoveClick = (moveIndex: number) => {
+    setSelectedMoveIndex(moveIndex);
+    const chessGame = new Chess();
+    const moves = game.moves.slice(0, moveIndex + 1);
+    if (moves.length > 0) {
+      chessGame.loadPgn(moves.join(' '));
+      setCurrentFen(chessGame.fen());
+    }
+  };
+
   const getPieceSymbol = (move: string, chessGame: Chess, moveIndex: number) => {
     try {
       // Load the game state up to this move
@@ -110,6 +125,13 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
       <div className="mb-4 text-sm text-gray-600">
         Opening: {detectedOpening}
       </div>
+
+      {/* Chess board */}
+      {selectedMoveIndex !== null && (
+        <div className="mb-4">
+          <ChessBoard fen={currentFen} width={300} />
+        </div>
+      )}
       
       {/* Column headers */}
       <div className="grid grid-cols-[3rem_1fr_1fr] gap-4 mb-2 px-2">
@@ -135,7 +157,10 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
                 <span className="text-gray-500">{pair.whiteMove.moveNumber}.</span>
                 
                 {/* White's move */}
-                <div className="flex items-center gap-2">
+                <div 
+                  className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded"
+                  onClick={() => handleMoveClick(index * 2)}
+                >
                   <span className={`inline-block w-6 text-center ${whiteSymbol.color === 'w' ? 'text-gray-800' : 'text-gray-600'}`}>
                     {whiteSymbol.symbol}
                   </span>
@@ -150,7 +175,10 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
                 
                 {/* Black's move */}
                 {pair.blackMove && blackSymbol && (
-                  <div className="flex items-center gap-2">
+                  <div 
+                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded"
+                    onClick={() => handleMoveClick(index * 2 + 1)}
+                  >
                     <span className={`inline-block w-6 text-center ${blackSymbol.color === 'w' ? 'text-gray-800' : 'text-gray-600'}`}>
                       {blackSymbol.symbol}
                     </span>
