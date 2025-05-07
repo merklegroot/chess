@@ -1,7 +1,7 @@
 import { ChessOpeningRepo } from '@/repo/chessOpeningRepo';
 import OpeningCategory from '@/components/OpeningCategory';
 
-export default function BookListPage() {
+export default function OpeningListPage() {
   const repo = ChessOpeningRepo.getInstance();
   const categories = repo.listOpeningsByCategory();
 

@@ -5,7 +5,7 @@ interface PageProps {
   params: { id: string };
 }
 
-export default async function BookDetailsPage({ params }: PageProps) {
+export default async function OpeningDetailsPage({ params }: PageProps) {
   const repo = ChessOpeningRepo.getInstance();
   const openings = repo.list();
   const opening = openings.find(o => o.id === params.id);
@@ -18,7 +18,7 @@ export default async function BookDetailsPage({ params }: PageProps) {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white shadow rounded-lg p-4">
           <h1 className="text-2xl font-bold mb-4">Opening Not Found</h1>
-          <Link href="/book/list" className="text-blue-600 hover:text-blue-800">
+          <Link href="/opening/list" className="text-blue-600 hover:text-blue-800">
             ← Back to Openings
           </Link>
         </div>
@@ -30,7 +30,7 @@ export default async function BookDetailsPage({ params }: PageProps) {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="bg-white shadow rounded-lg p-6">
         <div className="mb-6 flex justify-between items-center">
-          <Link href="/book/list" className="text-blue-600 hover:text-blue-800">
+          <Link href="/opening/list" className="text-blue-600 hover:text-blue-800">
             ← Back to Openings
           </Link>
         </div>

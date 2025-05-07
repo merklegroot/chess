@@ -42,8 +42,8 @@ export default function RootLayout({
                   <Link href="/game/list" className="text-gray-900 hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium">
                     Games
                   </Link>
-                  <Link href="/book/list" className="text-gray-900 hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium">
-                    Book
+                  <Link href="/opening/list" className="text-gray-900 hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium">
+                    Openings
                   </Link>
                 </div>
               </div>
