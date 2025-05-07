@@ -1,0 +1,15 @@
+export const londonOpenings = {
+    'd4 d5 Bf4': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6 e3': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6 e3 c5': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6 e3 c5 c3': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6 Ngf3': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6 Ngf3 Bd6': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6 Ngf3 Bd6 Bg3': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6 Ngf3 Bd6 Bg3 O-O': { white: 'London System', black: 'London System' },
+    'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6 Ngf3 Bd6 Bg3 O-O h3': { white: 'London System', black: 'London System' },
+};

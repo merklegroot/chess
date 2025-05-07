@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Chess } from 'chess.js';
 import ChessBoard from '@/components/ChessBoard';
-import { openings } from '@/constants/openings';
+import { openings } from '@/constants/openings/openings';
 
 interface AnalysisResult {
   moveNumber: number;

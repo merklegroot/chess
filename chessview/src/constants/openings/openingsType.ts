@@ -1,0 +1,1 @@
+export type openingsType = { [key: string]: { white: string, black: string } }
