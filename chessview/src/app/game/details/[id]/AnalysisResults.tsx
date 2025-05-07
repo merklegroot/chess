@@ -62,6 +62,14 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
   return (
     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
       <h3 className="font-semibold mb-2">Analysis Results</h3>
+      
+      {/* Column headers */}
+      <div className="grid grid-cols-[3rem_1fr_1fr] gap-4 mb-2 px-2">
+        <div></div> {/* Empty cell for move number column */}
+        <div className="text-sm font-medium text-gray-700">{game.white}</div>
+        <div className="text-sm font-medium text-gray-700">{game.black}</div>
+      </div>
+      
       <div className="space-y-1">
         {movePairs.map((pair, index) => {
           const chessGame = new Chess();
