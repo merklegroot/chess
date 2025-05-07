@@ -42,6 +42,35 @@ export default function AnalyzeButton({ gameId, game }: AnalyzeButtonProps) {
     }
   };
 
+  const getPieceSymbol = (move: string, chessGame: Chess) => {
+    try {
+      const moveObj = chessGame.move(move);
+      if (moveObj) {
+        const piece = moveObj.piece;
+        const color = moveObj.color;
+        chessGame.undo(); // Undo the move to maintain the game state
+        
+        // Map piece types to symbols
+        const pieceSymbols: { [key: string]: string } = {
+          'p': '♟',
+          'n': '♞',
+          'b': '♝',
+          'r': '♜',
+          'q': '♛',
+          'k': '♚'
+        };
+        
+        return {
+          symbol: pieceSymbols[piece] || piece,
+          color: color
+        };
+      }
+    } catch (e) {
+      console.error('Error getting piece symbol:', e);
+    }
+    return { symbol: '?', color: 'w' };
+  };
+
   return (
     <div>
       <button
@@ -66,31 +95,44 @@ export default function AnalyzeButton({ gameId, game }: AnalyzeButtonProps) {
         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
           <h3 className="font-semibold mb-2">Analysis Results</h3>
           <div className="space-y-2">
-            {analysis.map((result: any, index: number) => (
-              <div 
-                key={index}
-                className={`p-2 rounded ${
-                  result.isBlunder ? 'bg-red-100' : 'bg-white'
-                }`}
-              >
-                <div className="font-mono flex items-center justify-between">
-                  <span>
-                    {result.moveNumber}. {result.move}
-                    {result.isBlunder && (
-                      <span className="ml-2 text-red-600">⚠️ Blunder</span>
-                    )}
-                  </span>
-                  <span className={`text-sm ${result.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {result.evaluation > 0 ? '+' : ''}{result.evaluation.toFixed(2)}
-                  </span>
-                </div>
-                {result.isBlunder && (
-                  <div className="text-sm text-gray-600 mt-1">
-                    Best move: {result.bestMove}
+            {analysis.map((result: any, index: number) => {
+              const chessGame = new Chess();
+              const pgn = game.moves.slice(0, index).join(' ');
+              if (pgn) {
+                chessGame.loadPgn(pgn);
+              }
+              const { symbol, color } = getPieceSymbol(result.move, chessGame);
+              
+              return (
+                <div 
+                  key={index}
+                  className={`p-2 rounded ${
+                    result.isBlunder ? 'bg-red-100' : 'bg-white'
+                  }`}
+                >
+                  <div className="font-mono flex items-center justify-between">
+                    <span>
+                      {result.moveNumber}.{' '}
+                      <span className={`inline-block w-6 text-center ${color === 'w' ? 'text-gray-800' : 'text-gray-600'}`}>
+                        {symbol}
+                      </span>{' '}
+                      {result.move}
+                      {result.isBlunder && (
+                        <span className="ml-2 text-red-600">⚠️ Blunder</span>
+                      )}
+                    </span>
+                    <span className={`text-sm ${result.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {result.evaluation > 0 ? '+' : ''}{result.evaluation.toFixed(2)}
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
+                  {result.isBlunder && (
+                    <div className="text-sm text-gray-600 mt-1">
+                      Best move: {result.bestMove}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
