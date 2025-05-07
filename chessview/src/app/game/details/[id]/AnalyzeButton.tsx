@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChessEngineService } from '@/services/chessEngine';
+import { Chess } from 'chess.js';
 
 interface AnalyzeButtonProps {
   gameId: string;
@@ -17,8 +18,24 @@ export default function AnalyzeButton({ gameId, game }: AnalyzeButtonProps) {
     try {
       setIsAnalyzing(true);
       setError(null);
+      
+      // Create a new Chess instance and load the moves
+      const chessGame = new Chess();
+      
+      // Debug: Log the moves array
+      console.log('Game moves:', game.moves);
+      
+      // Load the game using PGN format
+      const pgn = game.moves.join(' ');
+      try {
+        chessGame.loadPgn(pgn);
+      } catch (e) {
+        console.error('Failed to load PGN:', e);
+        throw new Error('Failed to load game moves');
+      }
+      
       const engine = new ChessEngineService();
-      const results = await engine.analyzeGame(game);
+      const results = await engine.analyzeGame(chessGame);
       setAnalysis(results);
     } catch (error) {
       console.error('Analysis failed:', error);
@@ -67,7 +84,7 @@ export default function AnalyzeButton({ gameId, game }: AnalyzeButtonProps) {
                 </div>
                 {result.isBlunder && (
                   <div className="text-sm text-gray-600 mt-1">
-                    Best move: {result.bestMove} (eval: {result.bestMoveEval.toFixed(2)})
+                    Best move: {result.bestMove} (eval: {result.evaluation.toFixed(2)})
                   </div>
                 )}
               </div>

@@ -92,16 +92,16 @@ export class ChessEngineService {
 
   async analyzeGame(game: Chess): Promise<AnalysisResult[]> {
     const results: AnalysisResult[] = [];
-    const moves = game.history({ verbose: true });
+    const moves = game.history();
 
     for (let i = 0; i < moves.length; i++) {
       const move = moves[i];
       const position = new Chess();
-      position.load(game.fen());
       
-      // Go back to the position before this move
-      for (let j = 0; j < i; j++) {
-        position.move(moves[j]);
+      // Load the game up to the current move
+      const pgn = moves.slice(0, i).join(' ');
+      if (pgn) {
+        position.loadPgn(pgn);
       }
 
       const { evaluation, bestMove } = await this.analyzePosition(position.fen());
@@ -111,7 +111,7 @@ export class ChessEngineService {
 
       results.push({
         moveNumber: Math.floor(i / 2) + 1,
-        move: move.san,
+        move: move,
         evaluation,
         bestMove,
         isBlunder
