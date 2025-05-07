@@ -74,20 +74,20 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
               key={index}
               className="p-2 rounded bg-white font-mono text-sm"
             >
-              <div className="flex items-center gap-4">
+              <div className="grid grid-cols-[3rem_1fr_1fr] gap-4 items-center">
                 {/* Move number */}
-                <span className="w-8 text-gray-500">{pair.whiteMove.moveNumber}.</span>
+                <span className="text-gray-500">{pair.whiteMove.moveNumber}.</span>
                 
                 {/* White's move */}
                 <div className="flex items-center gap-2">
                   <span className={`inline-block w-6 text-center ${whiteSymbol.color === 'w' ? 'text-gray-800' : 'text-gray-600'}`}>
                     {whiteSymbol.symbol}
                   </span>
-                  <span>{pair.whiteMove.move}</span>
+                  <span className="w-16">{pair.whiteMove.move}</span>
                   {pair.whiteMove.isBlunder && (
                     <span className="text-red-600">⚠️</span>
                   )}
-                  <span className={`${pair.whiteMove.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`w-16 text-right ${pair.whiteMove.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {pair.whiteMove.evaluation > 0 ? '+' : ''}{pair.whiteMove.evaluation.toFixed(2)}
                   </span>
                 </div>
@@ -98,11 +98,11 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
                     <span className={`inline-block w-6 text-center ${blackSymbol.color === 'w' ? 'text-gray-800' : 'text-gray-600'}`}>
                       {blackSymbol.symbol}
                     </span>
-                    <span>{pair.blackMove.move}</span>
+                    <span className="w-16">{pair.blackMove.move}</span>
                     {pair.blackMove.isBlunder && (
                       <span className="text-red-600">⚠️</span>
                     )}
-                    <span className={`${pair.blackMove.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`w-16 text-right ${pair.blackMove.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {pair.blackMove.evaluation > 0 ? '+' : ''}{pair.blackMove.evaluation.toFixed(2)}
                     </span>
                   </div>
