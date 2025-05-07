@@ -31,4 +31,20 @@ export const openings: { [key: string]: { white: string, black: string } } = {
   'd4 Nf6 c4 g6 Nc3 Bg7 e4': { white: 'King\'s Indian Attack, Classical Variation', black: 'King\'s Indian Defense, Classical Variation' },
   'd4 Nf6 c4 g6 Nc3 Bg7 e4 d6': { white: 'King\'s Indian Attack, Classical Variation', black: 'King\'s Indian Defense, Classical Variation' },
   'd4 Nf6 c4 g6 Nc3 Bg7 e4 d6 Nf3': { white: 'King\'s Indian Attack, Classical Variation', black: 'King\'s Indian Defense, Classical Variation' },
+
+  // London System variations
+  'd4 d5': { white: 'Queen\'s Pawn Game', black: 'Queen\'s Pawn Game' },
+  'd4 d5 Bf4': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6 e3': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6 e3 c5': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6 e3 c5 c3': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6 Ngf3': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6 Ngf3 Bd6': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6 Ngf3 Bd6 Bg3': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6 Ngf3 Bd6 Bg3 O-O': { white: 'London System', black: 'London System' },
+  'd4 d5 Bf4 Nf6 e3 c5 c3 Nc6 Nd2 e6 Ngf3 Bd6 Bg3 O-O h3': { white: 'London System', black: 'London System' },
 }; 

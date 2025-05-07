@@ -33,6 +33,20 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
     }
   };
 
+  const getLastMove = (moveIndex: number) => {
+    if (moveIndex < 0 || moveIndex >= game.moves.length) return undefined;
+    const chessGame = new Chess();
+    const moves = game.moves.slice(0, moveIndex + 1);
+    if (moves.length > 0) {
+      chessGame.loadPgn(moves.join(' '));
+      const lastMove = chessGame.history({ verbose: true }).pop();
+      if (lastMove) {
+        return lastMove.from + lastMove.to;
+      }
+    }
+    return undefined;
+  };
+
   const getOpeningAtMove = (moveIndex: number) => {
     const moves = game.moves.slice(0, moveIndex + 1);
     const moveString = moves.join(' ');
@@ -110,7 +124,11 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
       {/* Chess board */}
       {selectedMoveIndex !== null && (
         <div className="mb-4">
-          <ChessBoard fen={currentFen} width={300} />
+          <ChessBoard 
+            fen={currentFen} 
+            width={300} 
+            lastMove={getLastMove(selectedMoveIndex)}
+          />
         </div>
       )}
       
