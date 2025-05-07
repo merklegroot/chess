@@ -1,10 +1,9 @@
 import Link from 'next/link';
 import EcoItemInfo from '@/components/EcoItemInfo';
-import { ChessOpening } from '@/repo/chessOpeningRepo';
-
+import { chessOpeningWithVariantsModel } from '@/models/chessOpeningModel';
 interface OpeningCategoryProps {
   category: string;
-  openings: ChessOpening[];
+  openings: chessOpeningWithVariantsModel[];
 }
 
 export default function OpeningCategory({ category, openings }: OpeningCategoryProps) {
