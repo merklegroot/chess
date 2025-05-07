@@ -1,4 +1,4 @@
-import { Game, Move } from 'chess.js';
+import { Chess } from 'chess.js';
 
 interface AnalysisResult {
   moveNumber: number;
@@ -90,13 +90,13 @@ export class ChessEngineService {
     return { evaluation, bestMove };
   }
 
-  async analyzeGame(game: Game): Promise<AnalysisResult[]> {
+  async analyzeGame(game: Chess): Promise<AnalysisResult[]> {
     const results: AnalysisResult[] = [];
     const moves = game.history({ verbose: true });
 
     for (let i = 0; i < moves.length; i++) {
       const move = moves[i];
-      const position = new Game();
+      const position = new Chess();
       position.load(game.fen());
       
       // Go back to the position before this move
