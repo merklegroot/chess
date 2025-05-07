@@ -37,6 +37,7 @@ export class ChessOpeningRepo {
         const [eco, name, pgn, uci, epd] = line.split('\t');
         const [mainOpening, variation, subVariation] = this.parseOpeningName(name);
         openings.push({ 
+          native: line.trim(), // Store the original line as native
           eco, 
           name, 
           pgn, 

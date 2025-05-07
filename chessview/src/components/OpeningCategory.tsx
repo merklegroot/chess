@@ -62,9 +62,17 @@ function OpeningListItem({ opening }: { opening: chessOpeningModel }) {
         </button>
       </div>
       {isExpanded && (
-        <pre className="mt-4 p-3 bg-gray-100 rounded text-xs overflow-x-auto">
-          {JSON.stringify(opening, null, 2)}
-        </pre>
+        <div className="mt-4 space-y-3">
+          <div className="p-3 bg-gray-100 rounded">
+            <div className="text-sm font-medium text-gray-700 mb-1">Native Data:</div>
+            <div className="font-mono text-xs text-gray-600 whitespace-pre-wrap">
+              {opening.native}
+            </div>
+          </div>
+          <pre className="p-3 bg-gray-100 rounded text-xs overflow-x-auto">
+            {JSON.stringify(opening, null, 2)}
+          </pre>
+        </div>
       )}
     </div>
   );
