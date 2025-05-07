@@ -59,9 +59,56 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
     movePairs.push({ whiteMove, blackMove });
   }
 
+  // Get opening information
+  const chessGame = new Chess();
+  const pgn = game.moves.join(' ');
+  if (pgn) {
+    chessGame.loadPgn(pgn);
+  }
+  const opening = chessGame.history({ verbose: true }).slice(0, 10); // Get first 10 moves for opening detection
+  const openingMoves = opening.map(move => move.san).join(' ');
+  
+  // Common opening patterns
+  const openings: { [key: string]: string } = {
+    'e4 e5': 'Open Game',
+    'e4 c5': 'Sicilian Defense',
+    'e4 e6': 'French Defense',
+    'e4 d6': 'Pirc Defense',
+    'e4 d5': 'Scandinavian Defense',
+    'd4 d5': 'Queen\'s Gambit',
+    'd4 Nf6': 'Indian Defense',
+    'd4 d6': 'Old Indian Defense',
+    'c4 e5': 'English Opening',
+    'Nf3 d5': 'Reti Opening',
+    'b3 e5': 'Nimzo-Larsen Attack',
+    'g3 d5': 'King\'s Indian Attack',
+    'f4 d5': 'Bird\'s Opening',
+    'e4 g6': 'Modern Defense',
+    'd4 g6': 'King\'s Indian Defense',
+    'c4 Nf6': 'English Opening',
+    'Nf3 c5': 'Sicilian Defense',
+    'e4 Nf6': 'Alekhine\'s Defense',
+    'd4 e6': 'Queen\'s Indian Defense',
+    'c4 e6': 'English Defense',
+  };
+
+  // Find the matching opening
+  let detectedOpening = 'Unknown Opening';
+  for (const [pattern, name] of Object.entries(openings)) {
+    if (openingMoves.startsWith(pattern)) {
+      detectedOpening = name;
+      break;
+    }
+  }
+
   return (
     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
       <h3 className="font-semibold mb-2">Analysis Results</h3>
+      
+      {/* Opening information */}
+      <div className="mb-4 text-sm text-gray-600">
+        Opening: {detectedOpening}
+      </div>
       
       {/* Column headers */}
       <div className="grid grid-cols-[3rem_1fr_1fr] gap-4 mb-2 px-2">
