@@ -33,27 +33,26 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
     }
   };
 
-  const getOpeningAtMove = (moveIndex: number): string => {
-    const chessGame = new Chess();
+  const getOpeningAtMove = (moveIndex: number) => {
     const moves = game.moves.slice(0, moveIndex + 1);
-    if (moves.length > 0) {
-      chessGame.loadPgn(moves.join(' '));
-    }
-    const history = chessGame.history({ verbose: true });
-    const moveSequence = history.map(move => move.san).join(' ');
-    
-    // Find the longest matching opening
+    const moveString = moves.join(' ');
     let longestMatch = '';
-    let longestMatchName = '';
-    
+    let longestMatchName = { white: '', black: '' };
+
     for (const [pattern, name] of Object.entries(openings)) {
-      if (moveSequence.startsWith(pattern) && pattern.length > longestMatch.length) {
+      if (moveString === pattern && pattern.length > longestMatch.length) {
         longestMatch = pattern;
         longestMatchName = name;
       }
     }
-    
-    return longestMatchName || 'Unknown Opening';
+
+    // Return empty string if no match found
+    if (!longestMatch) {
+      return '';
+    }
+
+    // Return the appropriate name based on whose turn it is
+    return moveIndex % 2 === 0 ? longestMatchName.white : longestMatchName.black;
   };
 
   const getPieceSymbol = (move: string, chessGame: Chess, moveIndex: number) => {
