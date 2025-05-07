@@ -76,14 +76,24 @@ export class ChessEngineService {
     let bestMove = '';
 
     for (const line of lines) {
-      if (line.startsWith('info depth') && line.includes('score cp')) {
-        const scoreMatch = line.match(/score cp (-?\d+)/);
-        if (scoreMatch) {
-          evaluation = parseInt(scoreMatch[1]) / 100;
+      try {
+        const jsonResponse = JSON.parse(line);
+        if (jsonResponse.type === 'uci:response') {
+          const payload = jsonResponse.payload;
+          
+          if (payload.startsWith('info depth') && payload.includes('score cp')) {
+            const scoreMatch = payload.match(/score cp (-?\d+)/);
+            if (scoreMatch) {
+              evaluation = parseInt(scoreMatch[1]) / 100;
+            }
+          }
+          if (payload.startsWith('bestmove')) {
+            bestMove = payload.split(' ')[1];
+          }
         }
-      }
-      if (line.startsWith('bestmove')) {
-        bestMove = line.split(' ')[1];
+      } catch (e) {
+        // Skip lines that aren't valid JSON
+        continue;
       }
     }
 
