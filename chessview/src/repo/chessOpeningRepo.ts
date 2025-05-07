@@ -35,7 +35,7 @@ export class ChessOpeningRepo {
         if (!line.trim()) continue;
         
         const [eco, name, pgn, uci, epd] = line.split('\t');
-        const { mainOpening, variation, subVariation } = this.parseOpeningName(name);
+        const [mainOpening, variation, subVariation] = this.parseOpeningName(name);
         openings.push({ 
           eco, 
           name, 
@@ -53,19 +53,13 @@ export class ChessOpeningRepo {
     return openings;
   }
 
-  private parseOpeningName(name: string): { mainOpening: string; variation?: string; subVariation?: string } {
-    const parts = name.split(':').map(part => part.trim());
-    const mainOpening = parts[0];
-    
-    if (parts.length === 1) {
-      return { mainOpening };
-    }
-
-    const subParts = parts[1].split(',').map(part => part.trim());
-    const variation = subParts[0];
-    const subVariation = subParts.length > 1 ? subParts[1] : undefined;
-
-    return { mainOpening, variation, subVariation };
+  private parseOpeningName(name: string): [string, string | undefined, string | undefined] {
+    const parts = name.split(/[:,]/).map(part => part.trim());
+    return [
+      parts[0], // mainOpening
+      parts[1], // variation
+      parts[2]  // subVariation
+    ];
   }
 
   public getOpeningById(id: string): chessOpeningModel | undefined {
@@ -98,17 +92,12 @@ export class ChessOpeningRepo {
     const mainOpenings: Record<string, chessOpeningModel[]> = {};
 
     for (const opening of openings) {
-      const mainName = this.getMainOpeningName(opening.name);
-      if (!mainOpenings[mainName]) {
-        mainOpenings[mainName] = [];
+      if (!mainOpenings[opening.mainOpening]) {
+        mainOpenings[opening.mainOpening] = [];
       }
-      mainOpenings[mainName].push(opening);
+      mainOpenings[opening.mainOpening].push(opening);
     }
 
     return mainOpenings;
-  }
-
-  private getMainOpeningName(name: string): string {
-    return name.split(/[:,]/)[0].trim();
   }
 } 
