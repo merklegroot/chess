@@ -17,6 +17,15 @@ export class ChessOpeningRepo {
     return ChessOpeningRepo.instance;
   }
 
+  private generateId(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '_')         // Replace spaces with underscores
+      .replace(/_+/g, '_')          // Replace multiple underscores with single underscore
+      .replace(/^_|_$/g, '');       // Remove leading/trailing underscores
+  }
+
   public list(): chessOpeningModel[] {
     if (openingsCache) {
       return openingsCache;
@@ -37,7 +46,8 @@ export class ChessOpeningRepo {
         const [eco, name, pgn, uci, epd] = line.split('\t');
         const [mainOpening, variation, subVariation] = this.parseOpeningName(name);
         openings.push({ 
-          native: line.trim(), // Store the original line as native
+          id: this.generateId(name),
+          native: line.trim(),
           eco, 
           name, 
           pgn, 
