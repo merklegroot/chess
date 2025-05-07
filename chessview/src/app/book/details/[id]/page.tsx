@@ -5,7 +5,7 @@ interface PageProps {
   params: { id: string };
 }
 
-export default function BookDetailsPage({ params }: PageProps) {
+export default async function BookDetailsPage({ params }: PageProps) {
   const repo = ChessOpeningRepo.getInstance();
   const opening = repo.getOpeningById(params.id);
   const mainOpenings = repo.getOpeningsByMainName();
