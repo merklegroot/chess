@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { chessOpeningModel } from '@/models/chessOpeningModel';
-
+import { pgnParser } from '@/utils/pgnParser';
 // Cache for the openings data
 let openingsCache: chessOpeningModel[] | null = null;
 
@@ -26,6 +26,29 @@ export class ChessOpeningRepo {
       .replace(/^_|_$/g, '');       // Remove leading/trailing underscores
   }
 
+  private parseLine(line: string): chessOpeningModel {
+    const [eco, name, pgn, uci, epd] = line.split('\t');
+    const [mainOpening, variation, subVariation] = this.parseOpeningName(name);
+
+    const moves = pgnParser.parse(pgn);
+
+    const opening: chessOpeningModel = { 
+      id: this.generateId(name),
+      native: line.trim(),
+      eco, 
+      name, 
+      pgn, 
+      moves,
+      uci, 
+      epd,
+      mainOpening,
+      variation,
+      subVariation
+    };
+
+    return opening;
+  }
+
   public list(): chessOpeningModel[] {
     if (openingsCache) {
       return openingsCache;
@@ -43,20 +66,8 @@ export class ChessOpeningRepo {
       for (const line of lines) {
         if (!line.trim()) continue;
         
-        const [eco, name, pgn, uci, epd] = line.split('\t');
-        const [mainOpening, variation, subVariation] = this.parseOpeningName(name);
-        openings.push({ 
-          id: this.generateId(name),
-          native: line.trim(),
-          eco, 
-          name, 
-          pgn, 
-          uci, 
-          epd,
-          mainOpening,
-          variation,
-          subVariation
-        });
+        const opening = this.parseLine(line);
+        openings.push(opening);
       }
     }
 
