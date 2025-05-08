@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import AnalyzeButton from './AnalyzeButton';
+import { headers } from 'next/headers';
 
 function getWinner(result: string, white: string, black: string): string | null {
   switch (result) {
@@ -20,8 +21,10 @@ interface PageProps {
 
 export default async function GameDetailsPage({ params }: PageProps) {
   const { id } = await params;
+  const headersList = await headers();
+  const origin = headersList.get('origin') || 'http://localhost:3001';
   
-  const response = await fetch(`http://localhost:3001/api/games/${id}`, {
+  const response = await fetch(`${origin}/api/games/${id}`, {
     cache: 'no-store'
   });
   
