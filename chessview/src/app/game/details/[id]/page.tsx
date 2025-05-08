@@ -1,6 +1,6 @@
-import { ChessHistoryRepo } from '@/repo/chessHistoryRepo';
 import Link from 'next/link';
 import AnalyzeButton from './AnalyzeButton';
+import { headers } from 'next/headers';
 
 function getWinner(result: string, white: string, black: string): string | null {
   switch (result) {
@@ -21,10 +21,15 @@ interface PageProps {
 
 export default async function GameDetailsPage({ params }: PageProps) {
   const { id } = await params;
-  const repo = new ChessHistoryRepo();
-  const game = await repo.getGame(parseInt(id));
-
-  if (!game) {
+  const headersList = await headers();
+  const host = headersList.get('host') || 'localhost:3000';
+  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+  
+  const response = await fetch(`${protocol}://${host}/api/games/${id}`, {
+    cache: 'no-store'
+  });
+  
+  if (!response.ok) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white shadow rounded-lg p-4">
@@ -37,6 +42,7 @@ export default async function GameDetailsPage({ params }: PageProps) {
     );
   }
 
+  const { game } = await response.json();
   const winner = getWinner(game.result, game.white, game.black);
 
   return (
