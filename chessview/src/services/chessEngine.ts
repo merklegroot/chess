@@ -20,11 +20,19 @@ export class ChessEngineService {
   }
 
   private connect() {
+    console.log('Attempting to connect to Stockfish server...');
     this.ws = new WebSocket('ws://localhost:8080');
 
-    this.ws.onopen = () => {
+    this.ws.onopen = async () => {
       console.log('Connected to Stockfish server');
       this.isConnected = true;
+      
+      // Initialize UCI engine
+      await this.sendCommand('uci');
+      await this.sendCommand('isready');
+      await this.sendCommand('ucinewgame');
+      await this.sendCommand('isready');
+      
       this.processQueue();
     };
 
@@ -35,7 +43,12 @@ export class ChessEngineService {
       setTimeout(() => this.connect(), 5000);
     };
 
+    this.ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
     this.ws.onmessage = (event) => {
+      console.log('Received message from Stockfish:', event.data);
       const response = event.data;
       if (this.currentCallback) {
         this.currentCallback(response);
@@ -46,9 +59,64 @@ export class ChessEngineService {
   }
 
   private sendCommand(command: string): Promise<string> {
+    console.log('Sending command to Stockfish:', command);
     return new Promise((resolve) => {
+      let responses: string[] = [];
+      
       this.messageQueue.push(command);
-      this.currentCallback = resolve;
+      this.currentCallback = (response) => {
+        responses.push(response);
+        
+        // For 'go' commands, wait for 'bestmove'
+        if (command.startsWith('go')) {
+          if (response.includes('bestmove')) {
+            resolve(responses.join('\n'));
+          } else {
+            this.currentCallback = (r) => {
+              responses.push(r);
+              if (r.includes('bestmove')) {
+                resolve(responses.join('\n'));
+              } else {
+                this.currentCallback = this.currentCallback;
+              }
+            };
+          }
+        }
+        // For 'isready' commands, wait for 'readyok'
+        else if (command === 'isready') {
+          if (response.includes('readyok')) {
+            resolve(responses.join('\n'));
+          } else {
+            this.currentCallback = (r) => {
+              responses.push(r);
+              if (r.includes('readyok')) {
+                resolve(responses.join('\n'));
+              } else {
+                this.currentCallback = this.currentCallback;
+              }
+            };
+          }
+        }
+        // For 'uci' command, wait for 'uciok'
+        else if (command === 'uci') {
+          if (response.includes('uciok')) {
+            resolve(responses.join('\n'));
+          } else {
+            this.currentCallback = (r) => {
+              responses.push(r);
+              if (r.includes('uciok')) {
+                resolve(responses.join('\n'));
+              } else {
+                this.currentCallback = this.currentCallback;
+              }
+            };
+          }
+        }
+        // For other commands, resolve immediately
+        else {
+          resolve(responses.join('\n'));
+        }
+      };
       if (this.isConnected) {
         this.processQueue();
       }
@@ -62,6 +130,7 @@ export class ChessEngineService {
 
     const command = this.messageQueue.shift();
     if (command && this.ws) {
+      console.log('Processing command from queue:', command);
       this.ws.send(JSON.stringify({
         type: 'uci:command',
         payload: command
@@ -70,7 +139,12 @@ export class ChessEngineService {
   }
 
   async analyzePosition(fen: string, depth: number = 20): Promise<{ evaluation: number; bestMove: string }> {
-    const response = await this.sendCommand(`position fen ${fen}\ngo depth ${depth}`);
+    // Send position command and wait for readyok
+    await this.sendCommand(`position fen ${fen}`);
+    await this.sendCommand('isready');
+    
+    // Then send go command and wait for bestmove
+    const response = await this.sendCommand(`go depth ${depth}`);
     const lines = response.split('\n');
     
     let evaluation = 0;
@@ -78,10 +152,10 @@ export class ChessEngineService {
 
     for (const line of lines) {
       try {
+        // Try to parse as JSON first
         const jsonResponse = JSON.parse(line);
         if (jsonResponse.type === 'uci:response') {
           const payload = jsonResponse.payload;
-          
           if (payload.startsWith('info depth') && payload.includes('score cp')) {
             const scoreMatch = payload.match(/score cp (-?\d+)/);
             if (scoreMatch) {
@@ -93,11 +167,20 @@ export class ChessEngineService {
           }
         }
       } catch (e) {
-        // Skip lines that aren't valid JSON
-        continue;
+        // If not JSON, try parsing as raw UCI
+        if (line.startsWith('info depth') && line.includes('score cp')) {
+          const scoreMatch = line.match(/score cp (-?\d+)/);
+          if (scoreMatch) {
+            evaluation = parseInt(scoreMatch[1]) / 100;
+          }
+        }
+        if (line.startsWith('bestmove')) {
+          bestMove = line.split(' ')[1];
+        }
       }
     }
 
+    console.log('Analysis result:', { evaluation, bestMove });
     return { evaluation, bestMove };
   }
 

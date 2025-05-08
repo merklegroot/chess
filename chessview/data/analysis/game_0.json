@@ -5,7 +5,7 @@
     {
       "moveNumber": 1,
       "move": "d4",
-      "evaluation": 0.58,
+      "evaluation": 0.34,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -13,7 +13,7 @@
     {
       "moveNumber": 1,
       "move": "Nf6",
-      "evaluation": 0.26,
+      "evaluation": 0.31,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -21,7 +21,7 @@
     {
       "moveNumber": 2,
       "move": "Nc3",
-      "evaluation": 0.32,
+      "evaluation": 0.38,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -29,7 +29,7 @@
     {
       "moveNumber": 2,
       "move": "g6",
-      "evaluation": 0.35,
+      "evaluation": 0.31,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -37,7 +37,7 @@
     {
       "moveNumber": 3,
       "move": "e4",
-      "evaluation": 0.32,
+      "evaluation": 0.29,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -53,7 +53,7 @@
     {
       "moveNumber": 4,
       "move": "Nf3",
-      "evaluation": 0.31,
+      "evaluation": 0.27,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -61,7 +61,7 @@
     {
       "moveNumber": 4,
       "move": "O-O",
-      "evaluation": 0.26,
+      "evaluation": 0.28,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -77,7 +77,7 @@
     {
       "moveNumber": 5,
       "move": "Nc6",
-      "evaluation": 0.32,
+      "evaluation": 0.37,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -165,7 +165,7 @@
     {
       "moveNumber": 11,
       "move": "Bd2",
-      "evaluation": 0.37,
+      "evaluation": 0,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -245,7 +245,7 @@
     {
       "moveNumber": 16,
       "move": "Bxe6",
-      "evaluation": 0.43,
+      "evaluation": 0,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -349,7 +349,7 @@
     {
       "moveNumber": 22,
       "move": "Rxc7",
-      "evaluation": 0,
+      "evaluation": 0.33,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -365,7 +365,7 @@
     {
       "moveNumber": 23,
       "move": "Nf6",
-      "evaluation": 0,
+      "evaluation": 0.42,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -397,7 +397,7 @@
     {
       "moveNumber": 25,
       "move": "Rxc3",
-      "evaluation": 0,
+      "evaluation": 0.46,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -405,7 +405,7 @@
     {
       "moveNumber": 26,
       "move": "bxc3",
-      "evaluation": 0.42,
+      "evaluation": 0,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -437,7 +437,7 @@
     {
       "moveNumber": 28,
       "move": "f4",
-      "evaluation": 0.46,
+      "evaluation": 0,
       "bestMove": "",
       "isBlunder": false,
       "bookMoves": []
@@ -475,5 +475,5 @@
       "bookMoves": []
     }
   ],
-  "timestamp": "2025-05-08T18:55:14.508Z"
+  "timestamp": "2025-05-08T19:45:14.284Z"
 }
