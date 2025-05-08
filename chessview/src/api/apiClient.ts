@@ -1,4 +1,5 @@
 import { chessGameModel } from '@/models/chessGameModel';
+import { analysisResult } from '@/models/analysisResult';
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -16,7 +17,7 @@ export const apiClient = {
     return data.game;
   },
 
-  async analyzeGame(id: string): Promise<any> {
+  async analyzeGame(id: string): Promise<analysisResult[]> {
     const response = await fetch(`${baseUrl}/api/games/${id}/analyze`, {
       method: 'POST',
       cache: 'no-store'
@@ -27,7 +28,6 @@ export const apiClient = {
       throw new Error(error.error || 'Failed to analyze game');
     }
 
-    const data = await response.json();
-    return data.analysis;
+    return response.json();
   }
 }; 

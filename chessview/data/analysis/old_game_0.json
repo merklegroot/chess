@@ -1,0 +1,479 @@
+{
+  "gameIndex": 0,
+  "pgn": "d4 Nf6 Nc3 g6 e4 Bg7 Nf3 O-O Bc4 Nc6 e5 Nh5 O-O d6 Re1 dxe5 dxe5 Qxd1 Nxd1 e6 Bd2 f6 exf6 Rxf6 Bc3 Rf7 Ng5 Re7 Bxg7 Kxg7 Bxe6 Bxe6 Nxe6+ Kf6 Nc3 Rxe6 Nd5+ Kf7 Rxe6 Rd8 Nxc7 Rd7 Re3 Rxc7 g4 Nf6 h3 Nb4 Rc3 Rxc3 bxc3 Nxc2 Rb1 b6 f4 Na3 Rb4 Nc2 Rc4",
+  "analysis": [
+    {
+      "moveNumber": 1,
+      "move": "d4",
+      "evaluation": 0.34,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 1,
+      "move": "Nf6",
+      "evaluation": 0.31,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 2,
+      "move": "Nc3",
+      "evaluation": 0.38,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 2,
+      "move": "g6",
+      "evaluation": 0.31,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 3,
+      "move": "e4",
+      "evaluation": 0.29,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 3,
+      "move": "Bg7",
+      "evaluation": 0.37,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 4,
+      "move": "Nf3",
+      "evaluation": 0.27,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 4,
+      "move": "O-O",
+      "evaluation": 0.28,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 5,
+      "move": "Bc4",
+      "evaluation": 0.26,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 5,
+      "move": "Nc6",
+      "evaluation": 0.37,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 6,
+      "move": "e5",
+      "evaluation": 0.4,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 6,
+      "move": "Nh5",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 7,
+      "move": "O-O",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 7,
+      "move": "d6",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 8,
+      "move": "Re1",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 8,
+      "move": "dxe5",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 9,
+      "move": "dxe5",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 9,
+      "move": "Qxd1",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 10,
+      "move": "Nxd1",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 10,
+      "move": "e6",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 11,
+      "move": "Bd2",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 11,
+      "move": "f6",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 12,
+      "move": "exf6",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 12,
+      "move": "Rxf6",
+      "evaluation": 0.32,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 13,
+      "move": "Bc3",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 13,
+      "move": "Rf7",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 14,
+      "move": "Ng5",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 14,
+      "move": "Re7",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 15,
+      "move": "Bxg7",
+      "evaluation": 0.31,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 15,
+      "move": "Kxg7",
+      "evaluation": 0.37,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 16,
+      "move": "Bxe6",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 16,
+      "move": "Bxe6",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 17,
+      "move": "Nxe6+",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 17,
+      "move": "Kf6",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 18,
+      "move": "Nc3",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 18,
+      "move": "Rxe6",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 19,
+      "move": "Nd5+",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 19,
+      "move": "Kf7",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 20,
+      "move": "Rxe6",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 20,
+      "move": "Rd8",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 21,
+      "move": "Nxc7",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 21,
+      "move": "Rd7",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 22,
+      "move": "Re3",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 22,
+      "move": "Rxc7",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 23,
+      "move": "g4",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 23,
+      "move": "Nf6",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 24,
+      "move": "h3",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 24,
+      "move": "Nb4",
+      "evaluation": 0.42,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 25,
+      "move": "Rc3",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 25,
+      "move": "Rxc3",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 26,
+      "move": "bxc3",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 26,
+      "move": "Nxc2",
+      "evaluation": 0.36,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 27,
+      "move": "Rb1",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 27,
+      "move": "b6",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 28,
+      "move": "f4",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 28,
+      "move": "Na3",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 29,
+      "move": "Rb4",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 29,
+      "move": "Nc2",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    },
+    {
+      "moveNumber": 30,
+      "move": "Rc4",
+      "evaluation": 0,
+      "bestMove": "",
+      "isBlunder": false,
+      "bookMoves": []
+    }
+  ],
+  "timestamp": "2025-05-08T18:52:50.146Z"
+}
