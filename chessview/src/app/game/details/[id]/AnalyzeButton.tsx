@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { ChessEngineService } from '@/services/chessEngine';
 import { Chess } from 'chess.js';
 import AnalysisResults from './AnalysisResults';
+import { chessGameModel } from '@/models/chessGameModel';
 
 interface AnalyzeButtonProps {
-  game: any; // TODO: Type this properly
+  game: chessGameModel;
 }
 
 export default function AnalyzeButton({ game }: AnalyzeButtonProps) {
