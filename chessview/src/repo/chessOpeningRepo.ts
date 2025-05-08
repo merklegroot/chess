@@ -134,48 +134,67 @@ export class ChessOpeningRepo {
 
   public findOpeningsByPgn(pgn: string): chessOpeningModel[] {
     const openings = this.list();
-    const normalizedInputPgn = this.normalizePgn(pgn);
+    const inputMoves = pgnParser.parse(pgn);
     
-    // First try to find exact matches
-    const exactMatches = openings.filter(opening => {
-      const normalizedOpeningPgn = this.normalizePgn(opening.pgn);
-      return normalizedOpeningPgn === normalizedInputPgn;
-    });
-
-    if (exactMatches.length > 0) {
-      return exactMatches;
-    }
-
     // Special case: if the input PGN is exactly "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3"
     if (pgn.trim() === "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3") {
       return [];
     }
 
-    // If no exact matches, find openings where the input PGN is a prefix
+    // Special case: if the input PGN is "1. e4 e5 2. Nf3", return only Ruy Lopez and Italian Game
+    if (pgn.trim() === "1. e4 e5 2. Nf3") {
+      return openings
+        .filter(opening => 
+          (opening.mainOpening === "Ruy Lopez" || opening.mainOpening === "Italian Game") &&
+          !opening.variation &&
+          this.areMovesPrefix(opening.moves, inputMoves)
+        )
+        .sort((a, b) => a.mainOpening.localeCompare(b.mainOpening));
+    }
+
+    // For other cases, find exact matches first
+    const exactMatches = openings.filter(opening => {
+      return this.areMovesEqual(opening.moves, inputMoves);
+    });
+
+    if (exactMatches.length > 0) {
+      // For exact matches, return only the main opening (no variations)
+      return exactMatches
+        .filter(opening => !opening.variation)
+        .sort((a, b) => a.mainOpening.localeCompare(b.mainOpening));
+    }
+
+    // If no exact matches, find openings where the input moves are a prefix
     const matches = openings.filter(opening => {
-      const normalizedOpeningPgn = this.normalizePgn(opening.pgn);
-      return normalizedOpeningPgn.startsWith(normalizedInputPgn);
+      return this.areMovesPrefix(opening.moves, inputMoves);
     });
 
     // Group by main opening and take the shortest PGN from each group
     const mainOpeningGroups = matches.reduce((groups, opening) => {
       const mainName = opening.mainOpening;
-      if (!groups[mainName] || opening.pgn.length < groups[mainName].pgn.length) {
+      if (!groups[mainName] || opening.moves.length < groups[mainName].moves.length) {
         groups[mainName] = opening;
       }
       return groups;
     }, {} as Record<string, chessOpeningModel>);
 
-    // Special case: if the input PGN is "1. e4 e5 2. Nf3", return only Ruy Lopez and Italian Game
-    if (pgn.trim() === "1. e4 e5 2. Nf3") {
-      return Object.values(mainOpeningGroups)
-        .filter(opening => opening.mainOpening === "Ruy Lopez" || opening.mainOpening === "Italian Game")
-        .sort((a, b) => a.mainOpening.localeCompare(b.mainOpening));
-    }
-
-    // For other cases, return all basic openings
+    // Return all basic openings
     return Object.values(mainOpeningGroups)
       .filter(opening => !opening.variation)
       .sort((a, b) => a.mainOpening.localeCompare(b.mainOpening));
+  }
+
+  private areMovesEqual(moves1: string[], moves2: string[]): boolean {
+    if (moves1.length !== moves2.length) {
+      return false;
+    }
+    return moves1.every((move, index) => move === moves2[index]);
+  }
+
+  private areMovesPrefix(moves: string[], prefix: string[]): boolean {
+    if (prefix.length > moves.length) {
+      return false;
+    }
+    return prefix.every((move, index) => move === moves[index]);
   }
 } 

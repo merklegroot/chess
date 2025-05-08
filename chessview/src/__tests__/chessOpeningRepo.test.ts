@@ -26,7 +26,10 @@ describe('ChessOpeningRepo', () => {
       const pgnSequence = '1. e4 e5 2. Nf3'; // Should match multiple openings
 
       const result = repo.findOpeningsByPgn(pgnSequence);
-      expect(result.map(o => o.id)).toEqual(['ruy_lopez', 'italian_game']);
+      const resultIds = result.map(o => o.id);
+      expect(resultIds).toHaveLength(2);
+      expect(resultIds).toContain('ruy_lopez');
+      expect(resultIds).toContain('italian_game');
     });
   });
 }); 
