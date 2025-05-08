@@ -111,4 +111,8 @@ export class ChessOpeningRepo {
 
     return mainOpenings;
   }
+
+  public findOpeningsByPgn(pgn: string): chessOpeningModel[] {
+    throw Error('Not implemented yet');
+  }
 } 
