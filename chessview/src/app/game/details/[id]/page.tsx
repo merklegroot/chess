@@ -107,22 +107,9 @@ export default async function GameDetailsPage({ params }: PageProps) {
         </div>
 
         <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Moves</h2>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="font-mono text-sm">
-              {game.moves.map((move, index) => (
-                <span key={index} className="inline-block mr-2">
-                  {index % 2 === 0 ? `${Math.floor(index/2) + 1}.` : ''} {move}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-8">
           <AnalyzeButton gameId={id} game={game} />
         </div>
       </div>
     </div>
   );
-} 
+}
