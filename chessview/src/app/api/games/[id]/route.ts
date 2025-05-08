@@ -6,8 +6,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     const repo = new ChessHistoryRepo();
-    const game = await repo.getGame(parseInt(params.id));
+    const game = await repo.getGame(parseInt(id));
 
     if (!game) {
       return NextResponse.json({ error: 'Game not found' }, { status: 404 });

@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { ChessEngineService } from '@/services/chessEngine';
-import { Chess } from 'chess.js';
 import AnalysisResults from './AnalysisResults';
 import { chessGameModel } from '@/models/chessGameModel';
+import { apiClient } from '@/api/apiClient';
+import { useParams } from 'next/navigation';
 
 interface AnalyzeButtonProps {
   game: chessGameModel;
@@ -14,26 +14,14 @@ export default function AnalyzeButton({ game }: AnalyzeButtonProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const params = useParams();
 
   const handleAnalyze = async () => {
     try {
       setIsAnalyzing(true);
       setError(null);
       
-      // Create a new Chess instance and load the moves
-      const chessGame = new Chess();
-      
-      // Load the game using PGN format
-      const pgn = game.moves.join(' ');
-      try {
-        chessGame.loadPgn(pgn);
-      } catch (e) {
-        console.error('Failed to load PGN:', e);
-        throw new Error('Failed to load game moves');
-      }
-      
-      const engine = new ChessEngineService();
-      const results = await engine.analyzeGame(chessGame);
+      const results = await apiClient.analyzeGame(params.id as string);
       setAnalysis(results);
     } catch (error) {
       console.error('Analysis failed:', error);
