@@ -22,8 +22,7 @@ interface PageProps {
 export default async function GameDetailsPage({ params }: PageProps) {
   const { id } = await params;
   const repo = new ChessHistoryRepo();
-  const games = await repo.getGames();
-  const game = games[parseInt(id)];
+  const game = await repo.getGame(parseInt(id));
 
   if (!game) {
     return (

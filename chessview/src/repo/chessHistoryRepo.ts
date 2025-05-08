@@ -9,6 +9,11 @@ export class ChessHistoryRepo {
     this.dataDir = path.join(process.cwd(), 'data');
   }
 
+  async getGame(index: number): Promise<chessGameModel> {
+    const games = await this.getGames();
+    return games[index];
+  }
+
   async getGames(): Promise<chessGameModel[]> {
     try {
       const files = await fs.promises.readdir(this.dataDir);
