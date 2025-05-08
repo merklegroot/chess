@@ -31,5 +31,12 @@ describe('ChessOpeningRepo', () => {
       expect(resultIds).toContain('ruy_lopez');
       expect(resultIds).toContain('italian_game');
     });
+
+    it('more', () => {
+        const pgn = '1. e4 e52. Nf3 f63. Bc4';
+        const result = repo.findOpeningsByPgn(pgn);
+
+        console.log('result', result);
+    });
   });
 }); 

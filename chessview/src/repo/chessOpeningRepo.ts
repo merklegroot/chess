@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { chessOpeningModel } from '@/models/chessOpeningModel';
 import { pgnParser } from '@/utils/pgnParser';
-// Cache for the openings data
+
 let openingsCache: chessOpeningModel[] | null = null;
 
 export class ChessOpeningRepo {
@@ -123,14 +123,6 @@ export class ChessOpeningRepo {
     return mainOpenings;
   }
 
-  private normalizePgn(pgn: string): string {
-    return pgn
-      .trim()
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .replace(/\s*\d+\.\s*/g, '') // Remove move numbers
-      .replace(/\s+/g, ' ') // Normalize whitespace again
-      .trim();
-  }
 
   public findOpeningsByPgn(pgn: string): chessOpeningModel[] {
     const openings = this.list();
