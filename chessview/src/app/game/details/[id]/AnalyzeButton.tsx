@@ -6,11 +6,10 @@ import { Chess } from 'chess.js';
 import AnalysisResults from './AnalysisResults';
 
 interface AnalyzeButtonProps {
-  gameId: string;
   game: any; // TODO: Type this properly
 }
 
-export default function AnalyzeButton({ gameId, game }: AnalyzeButtonProps) {
+export default function AnalyzeButton({ game }: AnalyzeButtonProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);

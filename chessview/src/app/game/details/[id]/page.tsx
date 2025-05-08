@@ -22,9 +22,10 @@ interface PageProps {
 export default async function GameDetailsPage({ params }: PageProps) {
   const { id } = await params;
   const headersList = await headers();
-  const origin = headersList.get('origin') || 'http://localhost:3001';
+  const host = headersList.get('host') || 'localhost:3001';
+  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
   
-  const response = await fetch(`${origin}/api/games/${id}`, {
+  const response = await fetch(`${protocol}://${host}/api/games/${id}`, {
     cache: 'no-store'
   });
   
@@ -111,7 +112,7 @@ export default async function GameDetailsPage({ params }: PageProps) {
         </div>
 
         <div className="mt-8">
-          <AnalyzeButton gameId={id} game={game} />
+          <AnalyzeButton game={game} />
         </div>
       </div>
     </div>
