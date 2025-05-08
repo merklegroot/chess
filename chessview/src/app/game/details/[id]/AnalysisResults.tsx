@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Chess } from 'chess.js';
 import ChessBoard from '@/components/ChessBoard';
-import { openings } from '@/constants/openings/openings';
 
 interface AnalysisResult {
   moveNumber: number;
@@ -16,12 +15,17 @@ interface AnalysisResult {
 
 interface AnalysisResultsProps {
   analysis: AnalysisResult[];
-  game: any; // TODO: Type this properly
+  game: {
+    moves: string[];
+    white: string;
+    black: string;
+  };
 }
 
 export default function AnalysisResults({ analysis, game }: AnalysisResultsProps) {
   const [selectedMoveIndex, setSelectedMoveIndex] = useState<number | null>(null);
   const [currentFen, setCurrentFen] = useState<string>('');
+  const [openingCache, setOpeningCache] = useState<Record<string, string>>({});
 
   const handleMoveClick = (moveIndex: number) => {
     setSelectedMoveIndex(moveIndex);
@@ -47,27 +51,43 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
     return undefined;
   };
 
-  const getOpeningAtMove = (moveIndex: number) => {
+  const getOpeningAtMove = useCallback(async (moveIndex: number) => {
     const moves = game.moves.slice(0, moveIndex + 1);
-    const moveString = moves.join(' ');
-    let longestMatch = '';
-    let longestMatchName = { white: '', black: '' };
-
-    for (const [pattern, name] of Object.entries(openings)) {
-      if (moveString === pattern && pattern.length > longestMatch.length) {
-        longestMatch = pattern;
-        longestMatchName = name;
-      }
+    const pgn = moves.join(' ');
+    
+    // Check cache first
+    if (openingCache[pgn]) {
+      return openingCache[pgn];
     }
 
-    // Return empty string if no match found
-    if (!longestMatch) {
+    try {
+      const response = await fetch('/api/openings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pgn }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch opening');
+      }
+
+      const data = await response.json();
+      const openingName = data.openings.length > 0 ? data.openings[0].name : '';
+      
+      // Update cache
+      setOpeningCache(prev => ({
+        ...prev,
+        [pgn]: openingName
+      }));
+
+      return openingName;
+    } catch (error) {
+      console.error('Error fetching opening:', error);
       return '';
     }
-
-    // Return the appropriate name based on whose turn it is
-    return moveIndex % 2 === 0 ? longestMatchName.white : longestMatchName.black;
-  };
+  }, [game.moves, openingCache]);
 
   const getPieceSymbol = (move: string, chessGame: Chess, moveIndex: number) => {
     try {
@@ -118,7 +138,7 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
       
       {/* Opening information */}
       <div className="mb-4 text-sm text-gray-600">
-        Opening: {getOpeningAtMove(game.moves.length - 1)}
+        Opening: {openingCache[game.moves.join(' ')] || 'Loading...'}
       </div>
 
       {/* Chess board */}
@@ -146,8 +166,8 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
           const whiteSymbol = getPieceSymbol(pair.whiteMove.move, chessGame, index * 2);
           const blackSymbol = pair.blackMove ? getPieceSymbol(pair.blackMove.move, chessGame, index * 2 + 1) : null;
           
-          const whiteOpening = getOpeningAtMove(index * 2);
-          const blackOpening = pair.blackMove ? getOpeningAtMove(index * 2 + 1) : null;
+          const whitePgn = game.moves.slice(0, index * 2 + 1).join(' ');
+          const blackPgn = pair.blackMove ? game.moves.slice(0, index * 2 + 2).join(' ') : '';
           
           return (
             <div 
@@ -173,7 +193,7 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
                   <span className={`w-16 text-right ${pair.whiteMove.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {pair.whiteMove.evaluation > 0 ? '+' : ''}{pair.whiteMove.evaluation.toFixed(2)}
                   </span>
-                  <span className="text-xs text-gray-500 ml-2">{whiteOpening}</span>
+                  <span className="text-xs text-gray-500 ml-2">{openingCache[whitePgn] || 'Loading...'}</span>
                 </div>
                 
                 {/* Black's move */}
@@ -192,7 +212,7 @@ export default function AnalysisResults({ analysis, game }: AnalysisResultsProps
                     <span className={`w-16 text-right ${pair.blackMove.evaluation > 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {pair.blackMove.evaluation > 0 ? '+' : ''}{pair.blackMove.evaluation.toFixed(2)}
                     </span>
-                    <span className="text-xs text-gray-500 ml-2">{blackOpening}</span>
+                    <span className="text-xs text-gray-500 ml-2">{openingCache[blackPgn] || 'Loading...'}</span>
                   </div>
                 )}
               </div>
