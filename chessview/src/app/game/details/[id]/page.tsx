@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import AnalyzeButton from './AnalyzeButton';
 import { apiClient } from '@/api/apiClient';
+import GameJsonViewer from './GameJsonViewer';
 
 function getWinner(result: string, white: string, black: string): string | null {
   switch (result) {
@@ -109,6 +110,8 @@ export default async function GameDetailsPage({ params }: PageProps) {
         <div className="mt-8">
           <AnalyzeButton game={game} />
         </div>
+
+        <GameJsonViewer game={game} />
       </div>
     </div>
   );
