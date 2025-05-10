@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { revalidatePath } from 'next/cache';
+import { ActionButtons } from './action-buttons';
 
 const execAsync = promisify(exec);
 
@@ -25,6 +26,7 @@ interface CommandHistory {
 }
 
 let commandHistory: CommandHistory[] = [];
+let isProcessing = false;
 
 async function checkContainerStatus(): Promise<ContainerStatus> {
     try {
@@ -48,11 +50,15 @@ async function checkContainerStatus(): Promise<ContainerStatus> {
             if (lines.length > 1) { // Skip header line
                 const containerData = lines[1].split(/\s{2,}/);
                 if (containerData.length >= 6) {
+                    // Extract the application port (e.g., "0.0.0.0:8080->8080/tcp" -> "8080")
+                    const ports = containerData[5] || '';
+                    const appPort = ports.split('->')[0]?.split(':')[1]?.split('/')[0] || 'None';
+                    
                     containerInfo = {
                         containerId: containerData[0],
                         image: containerData[1],
                         created: containerData[3],
-                        ports: containerData[5],
+                        ports: appPort,
                         names: containerData[6] || 'stockfish-server'
                     };
                 }
@@ -93,6 +99,9 @@ async function checkContainerStatus(): Promise<ContainerStatus> {
 async function handleStartContainer() {
     'use server';
     
+    if (isProcessing) return;
+    isProcessing = true;
+    
     try {
         const { stdout, stderr } = await execAsync('docker start stockfish-server');
         const output = stdout || stderr || 'Container started successfully';
@@ -112,12 +121,17 @@ async function handleStartContainer() {
         });
         // Keep last 10 commands
         commandHistory = commandHistory.slice(-10);
+    } finally {
+        isProcessing = false;
     }
     revalidatePath('/dock');
 }
 
 async function handleStopContainer() {
     'use server';
+    
+    if (isProcessing) return;
+    isProcessing = true;
     
     try {
         const { stdout, stderr } = await execAsync('docker stop stockfish-server');
@@ -138,12 +152,23 @@ async function handleStopContainer() {
         });
         // Keep last 10 commands
         commandHistory = commandHistory.slice(-10);
+    } finally {
+        isProcessing = false;
     }
     revalidatePath('/dock');
 }
 
 async function handleCheckStatus() {
     'use server';
+    
+    if (isProcessing) return;
+    isProcessing = true;
+    
+    try {
+        await checkContainerStatus();
+    } finally {
+        isProcessing = false;
+    }
     revalidatePath('/dock');
 }
 
@@ -154,32 +179,12 @@ export default async function DockPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 className="text-2xl font-bold mb-4">Dock</h1>
             <div className="space-y-4">
-                <div className="flex gap-4">
-                    <form action={handleCheckStatus}>
-                        <button 
-                            type="submit"
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                        >
-                            Check Container Status
-                        </button>
-                    </form>
-                    <form action={handleStartContainer}>
-                        <button 
-                            type="submit"
-                            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                        >
-                            Start Container
-                        </button>
-                    </form>
-                    <form action={handleStopContainer}>
-                        <button 
-                            type="submit"
-                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                        >
-                            Stop Container
-                        </button>
-                    </form>
-                </div>
+                <ActionButtons 
+                    isRunning={initialStatus.running}
+                    onCheckStatus={handleCheckStatus}
+                    onStartContainer={handleStartContainer}
+                    onStopContainer={handleStopContainer}
+                />
 
                 <div className={`p-4 rounded-lg ${initialStatus.running ? 'bg-green-100' : 'bg-red-100'}`}>
                     <div className="flex justify-between items-start">
@@ -192,30 +197,24 @@ export default async function DockPage() {
                             </div>
                             {initialStatus.containerInfo && (
                                 <div className="bg-white/50 rounded-lg p-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-3">
+                                    <div className="flex flex-wrap gap-6">
+                                        {!initialStatus.containerInfo.names && (
                                             <div>
                                                 <p className="text-xs text-gray-500 uppercase tracking-wider">Container ID</p>
                                                 <p className="font-mono text-sm">{initialStatus.containerInfo.containerId}</p>
                                             </div>
-                                            <div>
-                                                <p className="text-xs text-gray-500 uppercase tracking-wider">Image</p>
-                                                <p className="text-sm">{initialStatus.containerInfo.image}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-gray-500 uppercase tracking-wider">Created</p>
-                                                <p className="text-sm">{initialStatus.containerInfo.created}</p>
-                                            </div>
+                                        )}
+                                        <div>
+                                            <p className="text-xs text-gray-500 uppercase tracking-wider">Image</p>
+                                            <p className="text-sm">{initialStatus.containerInfo.image}</p>
                                         </div>
-                                        <div className="space-y-3">
-                                            <div>
-                                                <p className="text-xs text-gray-500 uppercase tracking-wider">Ports</p>
-                                                <p className="text-sm">{initialStatus.containerInfo.ports || 'None'}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-gray-500 uppercase tracking-wider">Name</p>
-                                                <p className="text-sm">{initialStatus.containerInfo.names}</p>
-                                            </div>
+                                        <div>
+                                            <p className="text-xs text-gray-500 uppercase tracking-wider">Port</p>
+                                            <p className="text-sm">{initialStatus.containerInfo.ports}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-500 uppercase tracking-wider">Name</p>
+                                            <p className="text-sm">{initialStatus.containerInfo.names}</p>
                                         </div>
                                     </div>
                                 </div>
