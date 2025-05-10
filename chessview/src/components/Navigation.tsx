@@ -14,9 +14,9 @@ export default function Navigation() {
             <div className="flex-shrink-0 flex items-center">
               <Link 
                 href="/" 
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 text-sm font-medium rounded-t-md relative ${
                   pathname === '/' 
-                    ? 'bg-gray-100 text-gray-900' 
+                    ? 'bg-gray-100 text-gray-900 after:content-[""] after:absolute after:left-2 after:right-2 after:bottom-1 after:h-[2px] after:bg-gray-400' 
                     : 'text-gray-900 hover:text-gray-600'
                 }`}
               >
@@ -24,9 +24,9 @@ export default function Navigation() {
               </Link>
               <Link 
                 href="/about" 
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 text-sm font-medium rounded-t-md relative ${
                   pathname === '/about' 
-                    ? 'bg-gray-100 text-gray-900' 
+                    ? 'bg-gray-100 text-gray-900 after:content-[""] after:absolute after:left-2 after:right-2 after:bottom-1 after:h-[2px] after:bg-gray-400' 
                     : 'text-gray-900 hover:text-gray-600'
                 }`}
               >
@@ -34,9 +34,9 @@ export default function Navigation() {
               </Link>
               <Link 
                 href="/game/list" 
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 text-sm font-medium rounded-t-md relative ${
                   pathname.startsWith('/game') 
-                    ? 'bg-gray-100 text-gray-900' 
+                    ? 'bg-gray-100 text-gray-900 after:content-[""] after:absolute after:left-2 after:right-2 after:bottom-1 after:h-[2px] after:bg-gray-400' 
                     : 'text-gray-900 hover:text-gray-600'
                 }`}
               >
@@ -44,9 +44,9 @@ export default function Navigation() {
               </Link>
               <Link 
                 href="/opening/list" 
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 text-sm font-medium rounded-t-md relative ${
                   pathname.startsWith('/opening') 
-                    ? 'bg-gray-100 text-gray-900' 
+                    ? 'bg-gray-100 text-gray-900 after:content-[""] after:left-2 after:right-2 after:bottom-1 after:h-[2px] after:bg-gray-400' 
                     : 'text-gray-900 hover:text-gray-600'
                 }`}
               >
@@ -54,9 +54,9 @@ export default function Navigation() {
               </Link>
               <Link 
                 href="/dock" 
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 text-sm font-medium rounded-t-md relative ${
                   pathname === '/dock' 
-                    ? 'bg-gray-100 text-gray-900' 
+                    ? 'bg-gray-100 text-gray-900 after:content-[""] after:absolute after:left-2 after:right-2 after:bottom-1 after:h-[2px] after:bg-gray-400' 
                     : 'text-gray-900 hover:text-gray-600'
                 }`}
               >
@@ -64,9 +64,9 @@ export default function Navigation() {
               </Link>
               <Link 
                 href="/dev" 
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 text-sm font-medium rounded-t-md relative ${
                   pathname === '/dev' 
-                    ? 'bg-gray-100 text-gray-900' 
+                    ? 'bg-gray-100 text-gray-900 after:content-[""] after:absolute after:left-2 after:right-2 after:bottom-1 after:h-[2px] after:bg-gray-400' 
                     : 'text-gray-900 hover:text-gray-600'
                 }`}
               >
