@@ -7,22 +7,28 @@ const execAsync = promisify(exec);
 interface ContainerStatus {
     running: boolean;
     status: string;
+    raw: string;
+    checkedAt: string;
 }
 
 async function checkContainerStatus(): Promise<ContainerStatus> {
     try {
-        const { stdout } = await execAsync('docker ps --filter "name=stockfish-server" --format "{{.Status}}"');
-        const isRunning = stdout.trim().length > 0;
+        const { stdout } = await execAsync('docker ps -a --filter "name=stockfish-server"');
+        const isRunning = stdout.includes('Up');
         
         return { 
             running: isRunning,
-            status: isRunning ? stdout.trim() : 'Container not running'
+            status: isRunning ? 'Container is running' : 'Container not running',
+            raw: stdout.trim() || 'No output',
+            checkedAt: new Date().toLocaleString()
         };
     } catch (error) {
         console.error('Error checking container status:', error);
         return { 
             running: false,
-            status: 'Error checking container status'
+            status: 'Error checking container status',
+            raw: error instanceof Error ? error.message : 'Unknown error',
+            checkedAt: new Date().toLocaleString()
         };
     }
 }
@@ -49,12 +55,20 @@ export default async function DockPage() {
                 </form>
 
                 <div className={`p-4 rounded-lg ${initialStatus.running ? 'bg-green-100' : 'bg-red-100'}`}>
-                    <p className="font-medium">
-                        Status: {initialStatus.running ? 'Running' : 'Not Running'}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                        {initialStatus.status}
-                    </p>
+                    <div className="flex justify-between items-start">
+                        <p className="font-medium">
+                            Status: {initialStatus.status}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            Last checked: {initialStatus.checkedAt}
+                        </p>
+                    </div>
+                    <div className="mt-2">
+                        <p className="text-sm font-medium text-gray-700">Raw Output:</p>
+                        <pre className="mt-1 text-sm text-gray-600 bg-gray-50 p-2 rounded overflow-x-auto whitespace-pre">
+                            {initialStatus.raw}
+                        </pre>
+                    </div>
                 </div>
             </div>
         </div>
