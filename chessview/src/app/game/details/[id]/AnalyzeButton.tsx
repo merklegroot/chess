@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import AnalysisResults from './AnalysisResults';
 import { chessGameModel } from '@/models/chessGameModel';
-import { apiClient } from '@/api/apiClient';
+import { apiClient } from '@/app/clients/apiClient/apiClient';
 import { useParams } from 'next/navigation';
 
 interface AnalyzeButtonProps {

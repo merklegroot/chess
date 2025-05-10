@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import AnalyzeButton from './AnalyzeButton';
-import { apiClient } from '@/api/apiClient';
+import { apiClient } from '@/app/clients/apiClient/apiClient';
 import GameJsonViewer from './GameJsonViewer';
 
 function getWinner(result: string, white: string, black: string): string | null {

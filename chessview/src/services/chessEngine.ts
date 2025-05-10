@@ -253,6 +253,29 @@ export class ChessEngineService {
     return bookMoves;
   }
 
+  async testConnection(): Promise<{ connected: boolean; version?: string, lines: string[] }> {
+    try {
+      const response = await this.sendCommand('uci');
+      const lines = response.split('\n');
+      
+      // Look for the version line which typically starts with "id name Stockfish"
+      const versionLine = lines.find(line => line.startsWith('id name Stockfish'));
+      const version = versionLine ? versionLine.split(' ')[2] : undefined;
+      
+      // Check if we got uciok response
+      const isConnected = lines.some(line => line.includes('uciok'));
+      
+      return {
+        connected: isConnected,
+        version,
+        lines
+      };
+    } catch (error) {
+      console.error('Error testing connection:', error);
+      return { connected: false, lines: [] };
+    }
+  }
+
   disconnect() {
     if (this.ws) {
       this.ws.close();
