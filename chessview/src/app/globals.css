@@ -24,3 +24,203 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes explode {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes particle {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) rotate(var(--tr));
+    opacity: 0;
+  }
+}
+
+.explode {
+  animation: explode 0.5s ease-out forwards;
+  pointer-events: none;
+  position: relative;
+}
+
+/* Main particles */
+.explode::before,
+.explode::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--particle-color, #ff4444);
+  border-radius: 50%;
+  animation: particle 0.5s ease-out forwards;
+  box-shadow: 0 0 8px var(--particle-color, #ff4444);
+}
+
+.explode::before {
+  --tx: 20px;
+  --ty: -20px;
+  --tr: 45deg;
+  --particle-color: #ff4444;
+  top: 50%;
+  left: 50%;
+}
+
+.explode::after {
+  --tx: -20px;
+  --ty: 20px;
+  --tr: -45deg;
+  --particle-color: #ff6b6b;
+  top: 50%;
+  left: 50%;
+}
+
+/* Additional particles */
+.explode > * {
+  position: relative;
+}
+
+.explode > *::before,
+.explode > *::after {
+  content: '';
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: var(--particle-color, #ff4444);
+  border-radius: 50%;
+  animation: particle 0.5s ease-out forwards;
+  box-shadow: 0 0 8px var(--particle-color, #ff4444);
+}
+
+.explode > *::before {
+  --tx: 15px;
+  --ty: 15px;
+  --tr: 90deg;
+  --particle-color: #ff8f8f;
+  top: 50%;
+  left: 50%;
+}
+
+.explode > *::after {
+  --tx: -15px;
+  --ty: -15px;
+  --tr: -90deg;
+  --particle-color: #ffb3b3;
+  top: 50%;
+  left: 50%;
+}
+
+/* Main particles */
+.explode::before,
+.explode::after {
+  content: '';
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  background: var(--particle-color, #ff4444);
+  border-radius: 50%;
+  animation: particle 1s ease-out forwards;
+  box-shadow: 0 0 12px var(--particle-color, #ff4444);
+  z-index: 1001;
+}
+
+/* Additional particles */
+.explode > * {
+  position: relative;
+}
+
+.explode > *::before,
+.explode > *::after {
+  content: '';
+  position: fixed;
+  width: 5px;
+  height: 5px;
+  background: var(--particle-color, #ff4444);
+  border-radius: 50%;
+  animation: particle 1s ease-out forwards;
+  box-shadow: 0 0 12px var(--particle-color, #ff4444);
+  z-index: 1001;
+}
+
+/* Extra particles with pseudo-elements */
+.explode > *::before {
+  content: '';
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: var(--particle-color, #ff4444);
+  border-radius: 50%;
+  animation: particle 1s ease-out forwards;
+  box-shadow: 0 0 12px var(--particle-color, #ff4444);
+  z-index: 1001;
+}
+
+.explode > *::after {
+  content: '';
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: var(--particle-color, #ff4444);
+  border-radius: 50%;
+  animation: particle 1s ease-out forwards;
+  box-shadow: 0 0 12px var(--particle-color, #ff4444);
+  z-index: 1001;
+}
+
+/* Add more particles with different positions and colors */
+.explode > *::before {
+  --tx: 100vw;
+  --ty: 0;
+  --tr: 180deg;
+  --particle-color: #ffd3d3;
+  top: 50%;
+  left: 50%;
+}
+
+.explode > *::after {
+  --tx: -100vw;
+  --ty: 0;
+  --tr: -180deg;
+  --particle-color: #ffe0e0;
+  top: 50%;
+  left: 50%;
+}
+
+/* Add even more particles with different sizes */
+.explode::before,
+.explode::after,
+.explode > *::before,
+.explode > *::after {
+  content: '';
+  position: fixed;
+  width: var(--particle-size, 4px);
+  height: var(--particle-size, 4px);
+  background: var(--particle-color, #ff4444);
+  border-radius: 50%;
+  animation: particle 1s ease-out forwards;
+  box-shadow: 0 0 12px var(--particle-color, #ff4444);
+  z-index: 1001;
+}
+
+/* Add particles with different sizes */
+.explode::before { --particle-size: 6px; }
+.explode::after { --particle-size: 5px; }
+.explode > *::before { --particle-size: 4px; }
+.explode > *::after { --particle-size: 4px; }
