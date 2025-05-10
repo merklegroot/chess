@@ -9,6 +9,13 @@ interface ContainerStatus {
     status: string;
     raw: string;
     checkedAt: string;
+    containerInfo: {
+        containerId: string;
+        image: string;
+        created: string;
+        ports: string;
+        names: string;
+    } | null;
 }
 
 interface CommandHistory {
@@ -33,12 +40,31 @@ async function checkContainerStatus(): Promise<ContainerStatus> {
         
         // Keep last 10 commands
         commandHistory = commandHistory.slice(-10);
+
+        // Parse container information
+        let containerInfo = null;
+        if (stdout.trim()) {
+            const lines = stdout.trim().split('\n');
+            if (lines.length > 1) { // Skip header line
+                const containerData = lines[1].split(/\s{2,}/);
+                if (containerData.length >= 6) {
+                    containerInfo = {
+                        containerId: containerData[0],
+                        image: containerData[1],
+                        created: containerData[3],
+                        ports: containerData[5],
+                        names: containerData[6] || 'stockfish-server'
+                    };
+                }
+            }
+        }
         
         return { 
             running: isRunning,
             status: isRunning ? 'Container is running' : 'Container not running',
             raw: stdout.trim() || 'No output',
-            checkedAt: timestamp
+            checkedAt: timestamp,
+            containerInfo
         };
     } catch (error) {
         console.error('Error checking container status:', error);
@@ -58,7 +84,8 @@ async function checkContainerStatus(): Promise<ContainerStatus> {
             running: false,
             status: 'Error checking container status',
             raw: errorMessage,
-            checkedAt: timestamp
+            checkedAt: timestamp,
+            containerInfo: null
         };
     }
 }
@@ -156,10 +183,45 @@ export default async function DockPage() {
 
                 <div className={`p-4 rounded-lg ${initialStatus.running ? 'bg-green-100' : 'bg-red-100'}`}>
                     <div className="flex justify-between items-start">
-                        <p className="font-medium">
-                            Status: {initialStatus.status}
-                        </p>
-                        <p className="text-sm text-gray-500">
+                        <div className="w-full">
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className={`w-3 h-3 rounded-full ${initialStatus.running ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                <p className="font-medium text-lg">
+                                    {initialStatus.status}
+                                </p>
+                            </div>
+                            {initialStatus.containerInfo && (
+                                <div className="bg-white/50 rounded-lg p-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-3">
+                                            <div>
+                                                <p className="text-xs text-gray-500 uppercase tracking-wider">Container ID</p>
+                                                <p className="font-mono text-sm">{initialStatus.containerInfo.containerId}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500 uppercase tracking-wider">Image</p>
+                                                <p className="text-sm">{initialStatus.containerInfo.image}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500 uppercase tracking-wider">Created</p>
+                                                <p className="text-sm">{initialStatus.containerInfo.created}</p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <p className="text-xs text-gray-500 uppercase tracking-wider">Ports</p>
+                                                <p className="text-sm">{initialStatus.containerInfo.ports || 'None'}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500 uppercase tracking-wider">Name</p>
+                                                <p className="text-sm">{initialStatus.containerInfo.names}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <p className="text-sm text-gray-500 ml-4 whitespace-nowrap">
                             Last checked: {initialStatus.checkedAt}
                         </p>
                     </div>
