@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useRef } from 'react';
 
-export default function Navigation() {
+function ClientNavigation() {
   const pathname = usePathname();
   const [explodedItems, setExplodedItems] = useState<Set<string>>(new Set());
   const [explodingItems, setExplodingItems] = useState<Set<string>>(new Set());
@@ -13,7 +13,6 @@ export default function Navigation() {
   const handleClick = (path: string) => {
     if (explodedItems.has(path) || explodingItems.has(path)) return;
 
-    const now = Date.now();
     const timer = clickTimers.current[path];
 
     if (timer) {
@@ -22,7 +21,6 @@ export default function Navigation() {
       
       if (timer.count >= 5) {
         setExplodingItems(prev => new Set([...prev, path]));
-        // Wait for animation to complete before removing
         setTimeout(() => {
           setExplodedItems(prev => new Set([...prev, path]));
           setExplodingItems(prev => {
@@ -74,7 +72,7 @@ export default function Navigation() {
                     key={path}
                     href={path}
                     onClick={() => handleClick(path)}
-                    className={`px-3 py-2 text-sm font-medium rounded-t-md relative transition-transform hover:scale-105 ${
+                    className={`px-3 py-2 text-sm font-medium rounded-md relative transition-transform hover:scale-105 ${
                       explodingItems.has(path) ? 'explode' : ''
                     } ${
                       isActive 
@@ -92,4 +90,9 @@ export default function Navigation() {
       </div>
     </nav>
   );
+}
+
+// Server component wrapper
+export default function Navigation() {
+  return <ClientNavigation />;
 } 
