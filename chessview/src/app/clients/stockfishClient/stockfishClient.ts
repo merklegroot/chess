@@ -6,7 +6,7 @@ import { uciResponse } from './uciResponse';
  * Accumulates the responses and returns them.
  * @returns {Promise<string[]>} - The responses from the stockfish engine.
  */
-export async function checkUciRaw(): Promise<string[]> {
+export async function uciRaw(): Promise<string[]> {
     const responses: string[] = [];
     const ws = new WebSocket('ws://localhost:8080');
     let timeout: NodeJS.Timeout;
@@ -44,8 +44,8 @@ export async function checkUciRaw(): Promise<string[]> {
     });
 }
 
-export async function checkUci(): Promise<uciResponse> {
-    const responses = await checkUciRaw();
+export async function uci(): Promise<uciResponse> {
+    const responses = await uciRaw();
     
     // Parse the first response as JSON
     const response = JSON.parse(responses[0]) as uciResponse;
@@ -70,6 +70,6 @@ export async function checkUci(): Promise<uciResponse> {
 }
 
 export const stockfishClient = {
-    checkUciRaw,
-    checkUci
+    checkUciRaw: uciRaw,
+    checkUci: uci
 };

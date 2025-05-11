@@ -6,7 +6,7 @@ import { uciResponse } from '../app/clients/stockfishClient/uciResponse';
 // We're not mocking anything.
 
 describe('stockfishClient', () => {
-  describe('checkUciRaw', () => {
+  describe('uciRaw', () => {
     it('should return at least one response line', async () => {
       const responses = await stockfishClient.checkUciRaw();
       console.log('Stockfish responses:', responses);
@@ -14,7 +14,7 @@ describe('stockfishClient', () => {
     }, 10000);
   });
 
-  describe('checkUci', () => {
+  describe('uci', () => {
     it('should return a parsed UCI response with version', async () => {
       const response = await stockfishClient.checkUci();
       console.log('Parsed UCI response:', response);
