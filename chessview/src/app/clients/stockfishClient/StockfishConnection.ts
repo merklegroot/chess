@@ -1,9 +1,5 @@
 import { uciResponse } from './uciResponse';
 
-interface StockfishOptions {
-    port?: number;
-}
-
 const DEFAULT_PORT = 8080;
 
 type StockfishEventType = 'uci:command' | 'uci:response' | 'auth:authenticated' | 'auth:unauthenticated';

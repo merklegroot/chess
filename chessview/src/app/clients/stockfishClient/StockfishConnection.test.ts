@@ -39,4 +39,43 @@ describe('StockfishConnection', () => {
         // The response should contain 'readyok'
         expect(responses.some(response => response.includes('readyok'))).toBe(true);
     }, 10000);
-}); 
+
+    it('should evaluate starting position', async () => {
+        console.log('Test starting...');
+        
+        // Initialize engine
+        console.log('Sending UCI command...');
+        const uciResponses = await connection.sendCommand('uci');
+        console.log('UCI responses:', uciResponses);
+        
+        console.log('Sending isready command...');
+        const readyResponses = await connection.sendCommand('isready');
+        console.log('Ready responses:', readyResponses);
+        
+        try {
+            // Set up starting position - note: this command doesn't return a response
+            console.log('Sending position command...');
+            await connection.sendCommand('position startpos');
+            console.log('Position command sent successfully');
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.log('Position command failed, but continuing with default position:', error.message);
+            } else {
+                console.log('Position command failed with unknown error, continuing with default position');
+            }
+        }
+        
+        // Get a very quick evaluation with a very short time limit
+        console.log('Sending evaluation command...');
+        const responses = await connection.sendCommand('go movetime 10');
+        console.log('Evaluation responses:', responses);
+        
+        // Verify we got a response with an evaluation
+        console.log('Checking response...');
+        expect(responses.length).toBeGreaterThan(0);
+        
+        // Should include a bestmove
+        expect(responses.some(response => response.includes('bestmove'))).toBe(true);
+        console.log('Test completed successfully');
+    }, 5000);
+});
