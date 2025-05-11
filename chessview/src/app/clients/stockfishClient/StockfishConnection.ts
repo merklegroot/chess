@@ -9,6 +9,20 @@ interface StockfishEvent {
     payload?: string;
 }
 
+interface PositionOptions {
+    /** FEN string for the position. If not provided, uses 'startpos' */
+    fen?: string;
+    /** List of moves to apply after the position is set */
+    moves?: string[];
+}
+
+interface EvaluationOptions {
+    /** How long to think in milliseconds */
+    moveTimeMs: number;
+    /** Maximum depth to search (optional) */
+    depth?: number;
+}
+
 export class StockfishConnection {
     private ws: WebSocket | null = null;
     private messageQueue: { command: string; resolve: (value: string[]) => void; reject: (reason: any) => void }[] = [];
@@ -18,6 +32,55 @@ export class StockfishConnection {
 
     constructor(port: number) {
         this.port = port;
+    }
+
+    // UCI Protocol Commands
+
+    /**
+     * Tell engine to use the UCI (Universal Chess Interface).
+     * Waits for 'uciok' response.
+     */
+    async sendUci(): Promise<string[]> {
+        return this.sendCommand('uci');
+    }
+
+    /**
+     * Check if the engine is ready.
+     * Waits for 'readyok' response.
+     */
+    async sendIsReady(): Promise<string[]> {
+        return this.sendCommand('isready');
+    }
+
+    /**
+     * Stop calculating as soon as possible.
+     * Does not wait for response.
+     */
+    async sendStop(): Promise<string[]> {
+        return this.sendCommand('stop');
+    }
+
+    /**
+     * Set up the position on the internal board.
+     * @param options Configuration options for the position
+     */
+    async setPosition(options: PositionOptions = {}): Promise<void> {
+        const { fen, moves } = options;
+        const fenPart = fen || 'startpos';
+        const movesPart = moves && moves.length > 0 ? ` moves ${moves.join(' ')}` : '';
+        await this.sendCommand(`position ${fenPart}${movesPart}`);
+    }
+
+    /**
+     * Start calculating on the current position.
+     * @param options Configuration options for the evaluation
+     */
+    async sendEvaluate(options: EvaluationOptions): Promise<string[]> {
+        const { moveTimeMs, depth } = options;
+        const command = ['go'];
+        if (moveTimeMs) command.push(`movetime ${moveTimeMs}`);
+        if (depth) command.push(`depth ${depth}`);
+        return this.sendCommand(command.join(' '));
     }
 
     private connect(): Promise<void> {

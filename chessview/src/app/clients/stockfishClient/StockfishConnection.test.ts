@@ -17,18 +17,18 @@ describe('StockfishConnection', () => {
         
         // Initialize engine
         console.log('Sending UCI command...');
-        const uciResponses = await connection.sendCommand('uci');
+        const uciResponses = await connection.sendUci();
         console.log('UCI responses:', uciResponses);
         
         console.log('Sending isready command...');
-        const readyResponses = await connection.sendCommand('isready');
+        const readyResponses = await connection.sendIsReady();
         console.log('Ready responses:', readyResponses);
         
         try {
-            // Set up starting position - note: this command doesn't return a response
-            console.log('Sending position command...');
-            await connection.sendCommand('position startpos');
-            console.log('Position command sent successfully');
+            // Set up starting position
+            console.log('Setting up starting position...');
+            await connection.setPosition();
+            console.log('Position set successfully');
         } catch (error: unknown) {
             if (error instanceof Error) {
                 console.log('Position command failed, but continuing with default position:', error.message);
@@ -38,8 +38,8 @@ describe('StockfishConnection', () => {
         }
         
         // Get a quick evaluation with a bit more time to think
-        console.log('Sending evaluation command...');
-        const responses = await connection.sendCommand('go movetime 100');
+        console.log('Starting evaluation...');
+        const responses = await connection.sendEvaluate({ moveTimeMs: 100 });
         console.log('Evaluation responses:', responses);
         
         // Verify we got a response with an evaluation
@@ -53,26 +53,28 @@ describe('StockfishConnection', () => {
 
     it('should evaluate position after 1.e4', async () => {
         // Initialize engine
-        await connection.sendCommand('uci');
-        await connection.sendCommand('isready');
+        await connection.sendUci();
+        await connection.sendIsReady();
         
         // Stop any ongoing analysis
         console.log('Stopping any ongoing analysis...');
-        await connection.sendCommand('stop');
-        // Always follow stop with isready to ensure synchronization
-        await connection.sendCommand('isready');
+        await connection.sendStop();
+        await connection.sendIsReady();
         
         // Set up position
-        console.log('Sending position command...');
-        await connection.sendCommand('position startpos moves e2e4');
-        console.log('Position command sent successfully');
+        console.log('Setting up position after 1.e4...');
+        await connection.setPosition({ moves: ['e2e4'] });
+        console.log('Position set successfully');
         
         // Ensure engine is ready
-        await connection.sendCommand('isready');
+        await connection.sendIsReady();
         
         // Start evaluation
-        console.log('Sending evaluation command...');
-        const responses = await connection.sendCommand('go movetime 25');
+        console.log('Starting evaluation...');
+        const responses = await connection.sendEvaluate({ 
+            moveTimeMs: 25,
+            depth: 10 // Add depth limit for more consistent results
+        });
         console.log('Evaluation responses:', responses);
         
         // Wait for bestmove
@@ -81,8 +83,8 @@ describe('StockfishConnection', () => {
         
         // Clean up
         console.log('Cleaning up...');
-        await connection.sendCommand('stop');
-        await connection.sendCommand('isready');
+        await connection.sendStop();
+        await connection.sendIsReady();
         
         console.log('Test completed successfully');
     }, 15000); // Increased timeout to 15 seconds
