@@ -6,7 +6,7 @@ import { uciResponse } from './uciResponse';
  * Accumulates the responses and returns them.
  * @returns {Promise<string[]>} - The responses from the stockfish engine.
  */
-export async function uciRaw(): Promise<string[]> {
+async function messageRaw(message: string): Promise<string[]> {
     const responses: string[] = [];
     const ws = new WebSocket('ws://localhost:8080');
     let timeout: NodeJS.Timeout;
@@ -19,7 +19,7 @@ export async function uciRaw(): Promise<string[]> {
             // i'm not yet sure if it sends multiple line JSON responses.
             // if there are multiple line responses, i don't know of an easy way to tell when it's done
             // short of parsing the JSON responses.
-            ws.send('uci');
+            ws.send(message);
             timeout = setTimeout(() => {
                 ws.close();
                 reject(new Error('Timeout waiting for Stockfish response'));
@@ -42,6 +42,25 @@ export async function uciRaw(): Promise<string[]> {
             reject(error);
         };
     });
+}
+
+/**
+ * Opens a websocket to stockfish on the default port.
+ * Sends the "uci" command.
+ * Accumulates the responses and returns them.
+ * @returns {Promise<string[]>} - The responses from the stockfish engine.
+ */
+export async function uciRaw(): Promise<string[]> {
+    return messageRaw('uci');
+}
+
+/**
+ * Checks if Stockfish is ready to accept commands.
+ * Sends the "isready" command and waits for "readyok" response.
+ * @returns {Promise<string[]>} - The responses from the stockfish engine.
+ */
+export async function isReadyRaw(): Promise<string[]> {
+    return messageRaw('isready');
 }
 
 export async function uci(): Promise<uciResponse> {
@@ -70,6 +89,8 @@ export async function uci(): Promise<uciResponse> {
 }
 
 export const stockfishClient = {
-    checkUciRaw: uciRaw,
-    checkUci: uci
+    uciRaw,
+    uci,
+
+    isReadyRaw
 };
