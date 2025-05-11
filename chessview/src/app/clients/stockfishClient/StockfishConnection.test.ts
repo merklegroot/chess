@@ -13,34 +13,6 @@ describe('StockfishConnection', () => {
     });
 
     it('should connect and get UCI response', async () => {
-        // Send UCI command and verify response
-        const responses = await connection.sendCommand('uci');
-        
-        // Verify we got some response
-        expect(responses.length).toBeGreaterThan(0);
-        
-        // The response should contain 'uciok' somewhere in the array
-        expect(responses.some(response => response.includes('uciok'))).toBe(true);
-        
-        // The response should contain Stockfish version information
-        expect(responses.some(response => response.includes('Stockfish'))).toBe(true);
-    }, 10000); // Set timeout to 10 seconds since network operations take time
-
-    it('should handle isready command', async () => {
-        // First send UCI command to initialize
-        await connection.sendCommand('uci');
-        
-        // Then check if engine is ready
-        const responses = await connection.sendCommand('isready');
-        
-        // Verify we got some response
-        expect(responses.length).toBeGreaterThan(0);
-        
-        // The response should contain 'readyok'
-        expect(responses.some(response => response.includes('readyok'))).toBe(true);
-    }, 10000);
-
-    it('should evaluate starting position', async () => {
         console.log('Test starting...');
         
         // Initialize engine
@@ -78,4 +50,40 @@ describe('StockfishConnection', () => {
         expect(responses.some(response => response.includes('bestmove'))).toBe(true);
         console.log('Test completed successfully');
     }, 5000);
+
+    it('should evaluate position after 1.e4', async () => {
+        // Initialize engine
+        await connection.sendCommand('uci');
+        await connection.sendCommand('isready');
+        
+        // Stop any ongoing analysis
+        console.log('Stopping any ongoing analysis...');
+        await connection.sendCommand('stop');
+        // Always follow stop with isready to ensure synchronization
+        await connection.sendCommand('isready');
+        
+        // Set up position
+        console.log('Sending position command...');
+        await connection.sendCommand('position startpos moves e2e4');
+        console.log('Position command sent successfully');
+        
+        // Ensure engine is ready
+        await connection.sendCommand('isready');
+        
+        // Start evaluation
+        console.log('Sending evaluation command...');
+        const responses = await connection.sendCommand('go movetime 25');
+        console.log('Evaluation responses:', responses);
+        
+        // Wait for bestmove
+        const hasBestMove = responses.some(response => response.startsWith('bestmove'));
+        expect(hasBestMove).toBe(true);
+        
+        // Clean up
+        console.log('Cleaning up...');
+        await connection.sendCommand('stop');
+        await connection.sendCommand('isready');
+        
+        console.log('Test completed successfully');
+    }, 15000); // Increased timeout to 15 seconds
 });

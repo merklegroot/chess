@@ -78,7 +78,7 @@ export class StockfishConnection {
             let timeout: NodeJS.Timeout;
 
             // For commands that don't return responses, resolve immediately
-            if (command === 'position startpos') {
+            if (command.startsWith('position ') || command === 'stop') {
                 this.sendEvent({
                     type: 'uci:command',
                     payload: command
@@ -133,7 +133,7 @@ export class StockfishConnection {
             timeout = setTimeout(() => {
                 this.currentCallback = null;
                 reject(new Error('Timeout waiting for Stockfish response'));
-            }, 5000);
+            }, 10000);
 
             this.sendEvent({
                 type: 'uci:command',
