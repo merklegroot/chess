@@ -39,6 +39,31 @@ export class StockfishConnection {
         this.port = port;
     }
 
+    /**
+     * Get the version of the Stockfish engine.
+     * @returns A promise that resolves to the version string (e.g. "Stockfish 16.1")
+     * @throws Error if version information cannot be found in the UCI response
+     */
+    async getVersion(): Promise<string> {
+        const responses = await this.sendUci();
+        const versionLine = responses.find(response => 
+            response.toLowerCase().includes('stockfish') && 
+            response.toLowerCase().includes('by')
+        );
+        
+        if (!versionLine) {
+            throw new Error('Could not find Stockfish version information in UCI response');
+        }
+
+        // Extract version number - typically in format "Stockfish XX.X by ..."
+        const match = versionLine.match(/Stockfish\s+(\d+(?:\.\d+)?)/i);
+        if (!match) {
+            throw new Error('Could not parse version number from UCI response');
+        }
+
+        return `Stockfish ${match[1]}`;
+    }
+
     // UCI Protocol Commands
 
     /**
