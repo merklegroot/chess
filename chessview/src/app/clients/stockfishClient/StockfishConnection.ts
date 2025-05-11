@@ -1,5 +1,6 @@
 import { uciResponse } from './uciResponse';
 
+/** Default WebSocket port for Stockfish server */
 const DEFAULT_PORT = 8080;
 
 type StockfishEventType = 'uci:command' | 'uci:response' | 'auth:authenticated' | 'auth:unauthenticated';
@@ -30,7 +31,11 @@ export class StockfishConnection {
     private isConnected = false;
     private port: number;
 
-    constructor(port: number) {
+    /**
+     * Create a new StockfishConnection.
+     * @param port Optional WebSocket port number. Defaults to 8080.
+     */
+    constructor(port: number = DEFAULT_PORT) {
         this.port = port;
     }
 

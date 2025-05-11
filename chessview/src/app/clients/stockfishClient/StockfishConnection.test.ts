@@ -2,10 +2,10 @@ import { StockfishConnection } from './StockfishConnection';
 
 describe('StockfishConnection', () => {
     let connection: StockfishConnection;
-    const port = 8080;
 
     beforeEach(() => {
-        connection = new StockfishConnection(port);
+        // Using default port
+        connection = new StockfishConnection();
     });
 
     afterEach(() => {
@@ -52,40 +52,47 @@ describe('StockfishConnection', () => {
     }, 5000);
 
     it('should evaluate position after 1.e4', async () => {
-        // Initialize engine
-        await connection.sendUci();
-        await connection.sendIsReady();
+        // Create a new connection with explicit port for this test
+        const customConnection = new StockfishConnection(8080);
         
-        // Stop any ongoing analysis
-        console.log('Stopping any ongoing analysis...');
-        await connection.sendStop();
-        await connection.sendIsReady();
-        
-        // Set up position
-        console.log('Setting up position after 1.e4...');
-        await connection.setPosition({ moves: ['e2e4'] });
-        console.log('Position set successfully');
-        
-        // Ensure engine is ready
-        await connection.sendIsReady();
-        
-        // Start evaluation
-        console.log('Starting evaluation...');
-        const responses = await connection.sendEvaluate({ 
-            moveTimeMs: 25,
-            depth: 10 // Add depth limit for more consistent results
-        });
-        console.log('Evaluation responses:', responses);
-        
-        // Wait for bestmove
-        const hasBestMove = responses.some(response => response.startsWith('bestmove'));
-        expect(hasBestMove).toBe(true);
-        
-        // Clean up
-        console.log('Cleaning up...');
-        await connection.sendStop();
-        await connection.sendIsReady();
-        
-        console.log('Test completed successfully');
+        try {
+            // Initialize engine
+            await customConnection.sendUci();
+            await customConnection.sendIsReady();
+            
+            // Stop any ongoing analysis
+            console.log('Stopping any ongoing analysis...');
+            await customConnection.sendStop();
+            await customConnection.sendIsReady();
+            
+            // Set up position
+            console.log('Setting up position after 1.e4...');
+            await customConnection.setPosition({ moves: ['e2e4'] });
+            console.log('Position set successfully');
+            
+            // Ensure engine is ready
+            await customConnection.sendIsReady();
+            
+            // Start evaluation
+            console.log('Starting evaluation...');
+            const responses = await customConnection.sendEvaluate({ 
+                moveTimeMs: 25,
+                depth: 10 // Add depth limit for more consistent results
+            });
+            console.log('Evaluation responses:', responses);
+            
+            // Wait for bestmove
+            const hasBestMove = responses.some(response => response.startsWith('bestmove'));
+            expect(hasBestMove).toBe(true);
+            
+            // Clean up
+            console.log('Cleaning up...');
+            await customConnection.sendStop();
+            await customConnection.sendIsReady();
+            
+            console.log('Test completed successfully');
+        } finally {
+            customConnection.disconnect();
+        }
     }, 15000); // Increased timeout to 15 seconds
 });
