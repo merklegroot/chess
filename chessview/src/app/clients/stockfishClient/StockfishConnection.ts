@@ -77,6 +77,16 @@ export class StockfishConnection {
             const responses: string[] = [];
             let timeout: NodeJS.Timeout;
 
+            // For commands that don't return responses, resolve immediately
+            if (command === 'position startpos') {
+                this.sendEvent({
+                    type: 'uci:command',
+                    payload: command
+                });
+                resolve([]);
+                return;
+            }
+
             this.currentCallback = (response: string) => {
                 try {
                     const event = JSON.parse(response) as StockfishEvent;

@@ -65,9 +65,9 @@ describe('StockfishConnection', () => {
             }
         }
         
-        // Get a very quick evaluation with a very short time limit
+        // Get a quick evaluation with a bit more time to think
         console.log('Sending evaluation command...');
-        const responses = await connection.sendCommand('go movetime 10');
+        const responses = await connection.sendCommand('go movetime 100');
         console.log('Evaluation responses:', responses);
         
         // Verify we got a response with an evaluation
