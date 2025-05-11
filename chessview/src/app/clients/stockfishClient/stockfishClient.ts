@@ -34,9 +34,6 @@ export async function checkUciRaw(): Promise<string[]> {
                 ws.close();
                 resolve(responses);                
             }
-            // if (response.includes('uciok')) {
-
-            // }
         };
 
         ws.onerror = (error) => {
@@ -47,16 +44,18 @@ export async function checkUciRaw(): Promise<string[]> {
     });
 }
 
-
 export async function checkUci(): Promise<uciResponse> {
     const responses = await checkUciRaw();
-
-    // here's a sample response:
-    // {"type":"uci:response","payload":"Stockfish 15.1 by the Stockfish developers (see AUTHORS file)"}
-
-    // return responses.map(response => response.payload);
-
-    throw Error('Not implemented');
+    
+    // Parse the first response as JSON
+    const response = JSON.parse(responses[0]) as uciResponse;
+    
+    // Validate the response structure
+    if (!response.type || !response.payload) {
+        throw new Error('Invalid UCI response format');
+    }
+    
+    return response;
 }
 
 export const stockfishClient = {
