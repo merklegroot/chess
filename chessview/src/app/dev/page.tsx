@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { StockfishConnection } from '../clients/stockfishClient/StockfishConnection';
+import ChessBoard from '@/components/ChessBoard';
 
 export default function DevPage() {
   const [version, setVersion] = useState<string | null>(null);
@@ -107,6 +108,14 @@ export default function DevPage() {
             <h2 className="text-2xl font-semibold mb-4">Position Analysis</h2>
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="space-y-4">
+                <div className="flex justify-center mb-4">
+                  <ChessBoard 
+                    fen={fen} 
+                    width={400}
+                    lastMove={bestMove || undefined}
+                  />
+                </div>
+
                 <div>
                   <label htmlFor="fen" className="block text-sm font-medium text-gray-700 mb-1">
                     FEN Position
