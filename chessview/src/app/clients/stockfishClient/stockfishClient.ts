@@ -54,8 +54,19 @@ export async function checkUci(): Promise<uciResponse> {
     if (!response.type || !response.payload) {
         throw new Error('Invalid UCI response format');
     }
+
+    // Extract version number from payload
+    const versionMatch = response.payload.match(/Stockfish (\d+\.\d+)/);
+    if (!versionMatch) {
+        throw new Error('Could not parse Stockfish version');
+    }
+
+    const version = versionMatch[1];
+    if (!version) {
+        throw new Error('Invalid version number');
+    }
     
-    return response;
+    return { ...response, version };
 }
 
 export const stockfishClient = {
