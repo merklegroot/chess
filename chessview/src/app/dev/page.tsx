@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Chess } from 'chess.js';
 import { StockfishConnection } from '../clients/stockfishClient/StockfishConnection';
 import ChessBoard from '@/components/ChessBoard';
 
@@ -68,6 +69,23 @@ export default function DevPage() {
     } finally {
       setAnalyzing(false);
       connection.disconnect();
+    }
+  };
+
+  const applyBestMove = () => {
+    if (!bestMove) return;
+    
+    try {
+      const chess = new Chess(fen);
+      chess.move({
+        from: bestMove.slice(0, 2),
+        to: bestMove.slice(2, 4),
+        promotion: bestMove.length > 4 ? bestMove[4] : undefined
+      });
+      setFen(chess.fen());
+      setBestMove(null); // Clear the best move after applying it
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to apply move');
     }
   };
 
@@ -175,6 +193,12 @@ export default function DevPage() {
                 {bestMove && !error && (
                   <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
                     Best move: <code className="bg-green-100 px-2 py-1 rounded">{bestMove}</code>
+                    <button
+                      onClick={applyBestMove}
+                      className="ml-4 bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                      Apply Move
+                    </button>
                   </div>
                 )}
               </div>
