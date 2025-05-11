@@ -1,1 +1,1 @@
-export * from './stockfishClient';
+export * from './StockfishConnection';
