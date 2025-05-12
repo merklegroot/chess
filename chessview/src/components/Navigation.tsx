@@ -51,6 +51,7 @@ function ClientNavigation() {
     { path: '/game/list', label: 'Games' },
     { path: '/opening/list', label: 'Openings' },
     { path: '/dock', label: 'Dock' },
+    { path: '/config', label: 'Config' },
     { path: '/dev', label: 'Dev' }
   ];
 
