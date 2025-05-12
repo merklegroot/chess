@@ -2,6 +2,8 @@
 
 import ChessBoard from '@/components/ChessBoard';
 import { Chess } from 'chess.js';
+import { useState } from 'react';
+import { StockfishConnection } from '@/app/clients/stockfishClient/StockfishConnection';
 
 interface MoveDetailsProps {
   move: {
@@ -13,7 +15,17 @@ interface MoveDetailsProps {
   };
 }
 
+interface EvalResult {
+  score?: number;
+  mate?: number;
+  depth: number;
+}
+
 export default function MoveDetails({ move }: MoveDetailsProps) {
+  const [beforeEval, setBeforeEval] = useState<EvalResult | null>(null);
+  const [afterEval, setAfterEval] = useState<EvalResult | null>(null);
+  const [isEvaluating, setIsEvaluating] = useState<{ before: boolean; after: boolean }>({ before: false, after: false });
+
   // Get the from and to squares for the arrow
   const getLastMove = (moveStr: string): string | undefined => {
     try {
@@ -28,6 +40,38 @@ export default function MoveDetails({ move }: MoveDetailsProps) {
     return undefined;
   };
 
+  const getQuickEvaluation = async (fen: string, type: 'before' | 'after') => {
+    setIsEvaluating(prev => ({ ...prev, [type]: true }));
+    const connection = new StockfishConnection();
+
+    try {
+      await connection.sendUci();
+      await connection.sendIsReady();
+      await connection.setPosition({ fen });
+      await connection.sendIsReady();
+      
+      const evalResult = await connection.sendSearchMoves();
+      if (type === 'before') {
+        setBeforeEval(evalResult);
+      } else {
+        setAfterEval(evalResult);
+      }
+    } catch (err) {
+      console.error('Error getting evaluation:', err);
+    } finally {
+      setIsEvaluating(prev => ({ ...prev, [type]: false }));
+      connection.disconnect();
+    }
+  };
+
+  const formatEval = (evalResult: EvalResult | null) => {
+    if (!evalResult) return null;
+    if (evalResult.mate !== undefined) {
+      return `M${Math.abs(evalResult.mate)}${evalResult.mate > 0 ? '' : '-'}`;
+    }
+    return evalResult.score !== undefined ? (evalResult.score / 100).toFixed(2) : null;
+  };
+
   return (
     <div className="w-96 bg-white rounded-lg shadow p-6 sticky top-6 h-fit">
       <h2 className="text-xl font-semibold mb-4">
@@ -37,24 +81,38 @@ export default function MoveDetails({ move }: MoveDetailsProps) {
       <div className="space-y-6">
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-gray-500">Position Before Move</h3>
-          <div className="bg-gray-50 p-3 rounded-md">
-            <code className="text-xs font-mono break-all">
+          <div className="bg-gray-50 p-3 rounded-md flex items-center gap-3">
+            <code className="text-xs font-mono break-all flex-1">
               {move.fenBefore}
             </code>
+            <button
+              onClick={() => getQuickEvaluation(move.fenBefore, 'before')}
+              disabled={isEvaluating.before}
+              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            >
+              {isEvaluating.before ? 'Evaluating...' : beforeEval ? formatEval(beforeEval) : 'Evaluate'}
+            </button>
           </div>
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-500">Position After Move</h3>
           <ChessBoard 
             fen={move.fenAfter} 
             width={300}
             lastMove={getLastMove(move.move)}
           />
-          <div className="bg-gray-50 p-3 rounded-md mt-2">
-            <code className="text-xs font-mono break-all">
+          <h3 className="text-sm font-medium text-gray-500">Position After Move</h3>
+          <div className="bg-gray-50 p-3 rounded-md flex items-center gap-3">
+            <code className="text-xs font-mono break-all flex-1">
               {move.fenAfter}
             </code>
+            <button
+              onClick={() => getQuickEvaluation(move.fenAfter, 'after')}
+              disabled={isEvaluating.after}
+              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            >
+              {isEvaluating.after ? 'Evaluating...' : afterEval ? formatEval(afterEval) : 'Evaluate'}
+            </button>
           </div>
         </div>
       </div>

@@ -83,7 +83,7 @@ export default function StockfishPage() {
       addToLog('sent', goCmd);
       
       // Get structured evaluation data
-      const evaluationResult = await connection.sendFindBestMove({
+      const evaluationResult = await connection.findBestMove({
         moveTimeMs,
         depth
       });
@@ -138,7 +138,7 @@ export default function StockfishPage() {
 
       // Get quick evaluation
       addToLog('sent', 'go depth 1 movetime 100');
-      const evalResult = await connection.getQuickEvaluation();
+      const evalResult = await connection.sendSearchMoves();
       
       // Update state with evaluation
       setQuickEval(evalResult);

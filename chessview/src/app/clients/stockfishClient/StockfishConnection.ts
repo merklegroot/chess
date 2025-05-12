@@ -17,7 +17,7 @@ interface PositionOptions {
     moves?: string[];
 }
 
-interface EvaluationOptions {
+interface searchMovesOptions {
     /** How long to think in milliseconds */
     moveTimeMs: number;
     /** Maximum depth to search (optional) */
@@ -137,7 +137,7 @@ export class StockfishConnection {
      * Returns raw UCI protocol responses from the engine.
      * @param options Configuration options for the evaluation
      */
-    async sendFindBestMoveRaw(options: EvaluationOptions): Promise<string[]> {
+    async sendSearchMovesRaw(options: searchMovesOptions): Promise<string[]> {
         const { moveTimeMs, depth, searchMoves } = options;
         const command = ['go'];
         if (moveTimeMs) command.push(`movetime ${moveTimeMs}`);
@@ -151,8 +151,8 @@ export class StockfishConnection {
      * @param options Configuration options for the evaluation
      * @returns Structured evaluation data
      */
-    async sendFindBestMove(options: EvaluationOptions): Promise<EvaluationResult> {
-        const responses = await this.sendFindBestMoveRaw(options);
+    async findBestMove(options: searchMovesOptions): Promise<EvaluationResult> {
+        const responses = await this.sendSearchMovesRaw(options);
         
         // Store all info lines
         const infoLines = responses.filter(line => line.startsWith('info'));
@@ -210,9 +210,9 @@ export class StockfishConnection {
      * Uses shallow search (depth 1) to get a basic assessment.
      * @returns Promise with the quick evaluation result
      */
-    async getQuickEvaluation(): Promise<StaticEvaluation> {
+    async sendSearchMoves(): Promise<StaticEvaluation> {
         // Search at depth 1 for a quick assessment
-        const responses = await this.sendFindBestMoveRaw({ 
+        const responses = await this.sendSearchMovesRaw({ 
             depth: 1,
             moveTimeMs: 100 // Very short time limit as backup
         });
