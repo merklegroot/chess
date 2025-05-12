@@ -1,9 +1,3 @@
-/* the .env file looks like this:
-CHESSVIEW_APP_NAME=ChessView
-CHESSVIEW_ANALYSIS_DEPTH=20
-CHESSVIEW_STOCKFISH_WORKER_COUNT=4
-*/
-
 const optionsNamespace = 'CHESSVIEW_';
 
 type AppOptions = Record<string, string | number>;
@@ -22,8 +16,6 @@ class OptionsManager {
   }
 
   /** List all options in the .env file, converting them to typescript convention.
-   * For example, CHESSVIEW_APP_NAME=ChessView will be converted to appName: 'ChessView'.
-   * CHESSVIEW_ANALYSIS_DEPTH=20 will be converted to analysisDepth: 20.
    */
   list(): AppOptions {
     // Return cached result if available
