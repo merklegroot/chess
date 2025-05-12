@@ -17,6 +17,7 @@ export default function DevPage() {
   const [bestMove, setBestMove] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [engineLogs, setEngineLogs] = useState<Array<{type: 'sent' | 'received', message: string}>>([]);
+  const [evaluation, setEvaluation] = useState<{score?: number, depth?: number, mate?: number} | null>(null);
 
   const addToLog = (type: 'sent' | 'received', message: string) => {
     setEngineLogs(logs => [...logs, { type, message }]);
@@ -46,6 +47,7 @@ export default function DevPage() {
     setAnalyzing(true);
     setError(null);
     setBestMove(null);
+    setEvaluation(null);
     clearLogs();
     const connection = new StockfishConnection();
 
@@ -74,25 +76,24 @@ export default function DevPage() {
       // Get evaluation
       const goCmd = `go movetime ${moveTimeMs}${depth ? ` depth ${depth}` : ''}`;
       addToLog('sent', goCmd);
-      const responses = await connection.sendEvaluate({ 
-        moveTimeMs, 
+      
+      // Get structured evaluation data
+      const evaluationResult = await connection.sendEvaluate({
+        moveTimeMs,
         depth
       });
-      responses.forEach(response => addToLog('received', response));
-
-      // Find the bestmove response
-      const bestMoveResponse = responses.find(response => response.startsWith('bestmove'));
-      if (!bestMoveResponse) {
-        throw new Error('No best move found in engine response');
-      }
-
-      // Extract the move
-      const match = bestMoveResponse.match(/bestmove\s+(\S+)/);
-      if (!match) {
-        throw new Error('Could not parse best move from response');
-      }
-
-      setBestMove(match[1]);
+      
+      // Log raw responses to the UI for debugging
+      evaluationResult.infoLines.forEach(line => addToLog('received', line));
+      addToLog('received', `bestmove ${evaluationResult.bestMove.move}${evaluationResult.bestMove.ponder ? ` ponder ${evaluationResult.bestMove.ponder}` : ''}`);
+      
+      // Update state with structured data
+      setBestMove(evaluationResult.bestMove.move);
+      setEvaluation({
+        score: evaluationResult.bestMove.score,
+        depth: evaluationResult.bestMove.depth,
+        mate: evaluationResult.bestMove.mate
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       addToLog('sent', '(error) ' + (err instanceof Error ? err.message : 'An error occurred'));
@@ -221,13 +222,25 @@ export default function DevPage() {
 
                   {bestMove && !error && (
                     <div className="mt-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
-                      Best move: <code className="bg-green-100 px-2 py-1 rounded">{bestMove}</code>
-                      <button
-                        onClick={applyBestMove}
-                        className="ml-4 bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                      >
-                        Apply Move
-                      </button>
+                      <div>
+                        Best move: <code className="bg-green-100 px-2 py-1 rounded">{bestMove}</code>
+                        <button
+                          onClick={applyBestMove}
+                          className="ml-4 bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        >
+                          Apply Move
+                        </button>
+                      </div>
+                      {evaluation && (
+                        <div className="mt-2 text-sm">
+                          {evaluation.mate !== undefined ? (
+                            <span>Mate in {Math.abs(evaluation.mate)} {evaluation.mate > 0 ? 'moves' : 'against you'}</span>
+                          ) : evaluation.score !== undefined ? (
+                            <span>Evaluation: {evaluation.score / 100} pawns</span>
+                          ) : null}
+                          {evaluation.depth && <span className="ml-2">(depth {evaluation.depth})</span>}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

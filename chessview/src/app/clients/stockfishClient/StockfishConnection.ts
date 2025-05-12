@@ -26,6 +26,26 @@ interface EvaluationOptions {
     searchMoves?: string[];
 }
 
+interface EvaluatedMove {
+    /** The move in UCI format (e.g. "e2e4") */
+    move: string;
+    /** The centipawn score from the engine's perspective */
+    score?: number;
+    /** The mate score (if available), e.g. "M5" means mate in 5 moves */
+    mate?: number;
+    /** The depth reached in analysis */
+    depth?: number;
+    /** The ponder move (if available) */
+    ponder?: string;
+}
+
+interface EvaluationResult {
+    /** The best move suggested by the engine */
+    bestMove: EvaluatedMove;
+    /** All info lines provided by the engine */
+    infoLines: string[];
+}
+
 export class StockfishConnection {
     private ws: WebSocket | null = null;
     private messageQueue: { command: string; resolve: (value: string[]) => void; reject: (reason: any) => void }[] = [];
@@ -105,15 +125,75 @@ export class StockfishConnection {
 
     /**
      * Start calculating on the current position.
+     * Returns raw UCI protocol responses from the engine.
      * @param options Configuration options for the evaluation
      */
-    async sendEvaluate(options: EvaluationOptions): Promise<string[]> {
+    async sendEvaluateRaw(options: EvaluationOptions): Promise<string[]> {
         const { moveTimeMs, depth, searchMoves } = options;
         const command = ['go'];
         if (moveTimeMs) command.push(`movetime ${moveTimeMs}`);
         if (depth) command.push(`depth ${depth}`);
         if (searchMoves && searchMoves.length > 0) command.push(`searchmoves ${searchMoves.join(' ')}`);
         return this.sendCommand(command.join(' '));
+    }
+
+    /**
+     * Start calculating on the current position and return parsed evaluation data.
+     * @param options Configuration options for the evaluation
+     * @returns Structured evaluation data
+     */
+    async sendEvaluate(options: EvaluationOptions): Promise<EvaluationResult> {
+        const responses = await this.sendEvaluateRaw(options);
+        
+        // Store all info lines
+        const infoLines = responses.filter(line => line.startsWith('info'));
+        
+        // Find the bestmove response
+        const bestMoveResponse = responses.find(response => response.startsWith('bestmove'));
+        if (!bestMoveResponse) {
+            throw new Error('No best move found in engine response');
+        }
+        
+        // Parse the best move
+        const bestMoveMatch = bestMoveResponse.match(/bestmove\s+(\S+)(?:\s+ponder\s+(\S+))?/);
+        if (!bestMoveMatch) {
+            throw new Error('Could not parse best move from response');
+        }
+        
+        const bestMove: EvaluatedMove = {
+            move: bestMoveMatch[1],
+            ponder: bestMoveMatch[2]
+        };
+        
+        // Try to find the score for the best move from the last info line
+        const lastInfoScoreLine = infoLines
+            .filter(line => line.includes(' score '))
+            .pop();
+            
+        if (lastInfoScoreLine) {
+            // Extract depth
+            const depthMatch = lastInfoScoreLine.match(/depth\s+(\d+)/);
+            if (depthMatch) {
+                bestMove.depth = parseInt(depthMatch[1], 10);
+            }
+            
+            // Extract score
+            const cpMatch = lastInfoScoreLine.match(/score\s+cp\s+(-?\d+)/);
+            if (cpMatch) {
+                bestMove.score = parseInt(cpMatch[1], 10);
+            }
+            
+            // Extract mate
+            const mateMatch = lastInfoScoreLine.match(/score\s+mate\s+(-?\d+)/);
+            if (mateMatch) {
+                bestMove.mate = parseInt(mateMatch[1], 10);
+            }
+        }
+        
+        return {
+            bestMove,
+            infoLines
+        };
     }
 
     private connect(): Promise<void> {
