@@ -1,10 +1,9 @@
 const optionsNamespace = 'CHESSVIEW_';
 
-type AppOptions = Record<string, string | number>;
 
 class OptionsManager {
   private static instance: OptionsManager;
-  private cachedOptions: AppOptions | null = null;
+  private cachedOptions: Record<string, string | number> | undefined = undefined;
 
   private constructor() {}
 
@@ -17,13 +16,13 @@ class OptionsManager {
 
   /** List all options in the .env file, converting them to typescript convention.
    */
-  list(): AppOptions {
+  list(): Record<string, string | number> {
     // Return cached result if available
     if (this.cachedOptions) {
       return this.cachedOptions;
     }
 
-    const options: AppOptions = {};
+    const options: Record<string, string | number> = {};
     
     // Get all environment variables
     const env = process.env;
@@ -53,5 +52,10 @@ class OptionsManager {
 const manager = OptionsManager.getInstance();
 
 export const appOptions = {
-  list: () => manager.list()
+  list: () => manager.list(),
+  getChessDotComUserName: (): string => {
+    const options = manager.list();
+    const username = options["chessDotComUserName"] as string;
+    return username || '(Username not configured)';
+  }
 };

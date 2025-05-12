@@ -36,6 +36,12 @@ export default async function ConfigPage() {
 
           <div className="prose">
             <p className="text-sm text-gray-500">
+              {JSON.stringify(entries, null, 2)}
+            </p>
+          </div>
+
+          <div className="prose">
+            <p className="text-sm text-gray-500">
               All configuration values are loaded from environment variables with the CHESSVIEW_ prefix.
               Values are cached after first load.
             </p>
