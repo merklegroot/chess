@@ -15,9 +15,14 @@ function getWinner(result: string, white: string, black: string): string | null 
   }
 }
 
+function getOpponent(white: string, black: string, username: string): string {
+  return white === username ? black : white;
+}
+
 export default async function GameListPage() {
   const repo = new ChessHistoryRepo();
   const games = await repo.getGames();
+  const username = appOptions.getChessDotComUserName();
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -27,7 +32,7 @@ export default async function GameListPage() {
           <h2 className="text-xl font-semibold mb-2">Game History</h2>
           <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
             <span>Chess.com User:</span>
-            <span className="font-medium">{appOptions.getChessDotComUserName()}</span>
+            <span className="font-medium">{username}</span>
             <span className="mx-2">•</span>
             <span>Total games: {games.length}</span>
           </div>
@@ -38,13 +43,15 @@ export default async function GameListPage() {
         ) : (
           <>
             <div className="grid grid-cols-[1fr_auto] gap-4 px-4 py-2 bg-gray-50 border-y border-gray-200 font-medium text-gray-600">
-              <div>Players</div>
+              <div>Vs.</div>
               <div>Date</div>
             </div>
             <div className="divide-y divide-gray-200">
               {games.map((game, index) => {
                 const winner = getWinner(game.result, game.white, game.black);
                 const isDraw = winner === null;
+                const opponent = getOpponent(game.white, game.black, username);
+                const isOpponentWinner = opponent === winner;
                 
                 return (
                   <Link 
@@ -53,14 +60,9 @@ export default async function GameListPage() {
                     className="grid grid-cols-[1fr_auto] gap-4 px-4 py-2 hover:bg-gray-50 transition-colors items-center"
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`font-medium ${game.white === winner ? 'text-green-600' : ''}`}>
-                        {game.white}
-                        {game.white === winner && <span className="ml-1" title="Winner">🏆</span>}
-                      </span>
-                      <span className="text-gray-400">vs</span>
-                      <span className={`font-medium ${game.black === winner ? 'text-green-600' : ''}`}>
-                        {game.black}
-                        {game.black === winner && <span className="ml-1" title="Winner">🏆</span>}
+                      <span className={`font-medium ${isOpponentWinner ? 'text-green-600' : ''}`}>
+                        {opponent}
+                        {isOpponentWinner && <span className="ml-1" title="Winner">🏆</span>}
                       </span>
                       {isDraw && <span className="text-gray-500 text-sm ml-2">(Draw)</span>}
                     </div>
