@@ -22,6 +22,8 @@ interface EvaluationOptions {
     moveTimeMs: number;
     /** Maximum depth to search (optional) */
     depth?: number;
+    /** List of moves to search (optional) */
+    searchMoves?: string[];
 }
 
 export class StockfishConnection {
@@ -96,7 +98,7 @@ export class StockfishConnection {
      */
     async setPosition(options: PositionOptions = {}): Promise<void> {
         const { fen, moves } = options;
-        const fenPart = fen || 'startpos';
+        const fenPart = fen ? `fen ${fen}` : 'startpos';
         const movesPart = moves && moves.length > 0 ? ` moves ${moves.join(' ')}` : '';
         await this.sendCommand(`position ${fenPart}${movesPart}`);
     }
@@ -106,10 +108,11 @@ export class StockfishConnection {
      * @param options Configuration options for the evaluation
      */
     async sendEvaluate(options: EvaluationOptions): Promise<string[]> {
-        const { moveTimeMs, depth } = options;
+        const { moveTimeMs, depth, searchMoves } = options;
         const command = ['go'];
         if (moveTimeMs) command.push(`movetime ${moveTimeMs}`);
         if (depth) command.push(`depth ${depth}`);
+        if (searchMoves && searchMoves.length > 0) command.push(`searchmoves ${searchMoves.join(' ')}`);
         return this.sendCommand(command.join(' '));
     }
 

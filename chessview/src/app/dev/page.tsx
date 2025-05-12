@@ -16,6 +16,15 @@ export default function DevPage() {
   const [depth, setDepth] = useState(15);
   const [bestMove, setBestMove] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [engineLogs, setEngineLogs] = useState<Array<{type: 'sent' | 'received', message: string}>>([]);
+
+  const addToLog = (type: 'sent' | 'received', message: string) => {
+    setEngineLogs(logs => [...logs, { type, message }]);
+  };
+
+  const clearLogs = () => {
+    setEngineLogs([]);
+  };
 
   const checkVersion = async () => {
     setLoading(true);
@@ -37,19 +46,39 @@ export default function DevPage() {
     setAnalyzing(true);
     setError(null);
     setBestMove(null);
+    clearLogs();
     const connection = new StockfishConnection();
 
     try {
+      // Create a chess instance to get the side to move
+      const chess = new Chess(fen);
+
       // Initialize engine
-      await connection.sendUci();
-      await connection.sendIsReady();
+      addToLog('sent', 'uci');
+      const uciResponses = await connection.sendUci();
+      uciResponses.forEach(response => addToLog('received', response));
+
+      addToLog('sent', 'isready');
+      const readyResponses = await connection.sendIsReady();
+      readyResponses.forEach(response => addToLog('received', response));
       
-      // Set position and get evaluation
+      // Set position
+      const positionCmd = `position fen ${fen}`;
+      addToLog('sent', positionCmd);
       await connection.setPosition({ fen });
+
+      addToLog('sent', 'isready');
+      const readyResponses2 = await connection.sendIsReady();
+      readyResponses2.forEach(response => addToLog('received', response));
+
+      // Get evaluation
+      const goCmd = `go movetime ${moveTimeMs}${depth ? ` depth ${depth}` : ''}`;
+      addToLog('sent', goCmd);
       const responses = await connection.sendEvaluate({ 
         moveTimeMs, 
-        depth 
+        depth
       });
+      responses.forEach(response => addToLog('received', response));
 
       // Find the bestmove response
       const bestMoveResponse = responses.find(response => response.startsWith('bestmove'));
@@ -66,9 +95,11 @@ export default function DevPage() {
       setBestMove(match[1]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      addToLog('sent', '(error) ' + (err instanceof Error ? err.message : 'An error occurred'));
     } finally {
       setAnalyzing(false);
       connection.disconnect();
+      addToLog('sent', '(disconnected)');
     }
   };
 
@@ -90,7 +121,7 @@ export default function DevPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="bg-white shadow rounded-lg p-6">
         <h1 className="text-3xl font-bold mb-6">Developer Tools</h1>
         
@@ -125,82 +156,103 @@ export default function DevPage() {
           <section>
             <h2 className="text-2xl font-semibold mb-4">Position Analysis</h2>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="space-y-4">
-                <div className="flex justify-center mb-4">
-                  <ChessBoard 
-                    fen={fen} 
-                    width={400}
-                    lastMove={bestMove || undefined}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="fen" className="block text-sm font-medium text-gray-700 mb-1">
-                    FEN Position
-                  </label>
-                  <input
-                    type="text"
-                    id="fen"
-                    value={fen}
-                    onChange={(e) => setFen(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                  <p className="mt-1 text-sm text-gray-500">
-                    Current position: Starting position
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="moveTime" className="block text-sm font-medium text-gray-700 mb-1">
-                      Think Time (ms)
-                    </label>
-                    <input
-                      type="number"
-                      id="moveTime"
-                      value={moveTimeMs}
-                      onChange={(e) => setMoveTimeMs(Number(e.target.value))}
-                      min="100"
-                      step="100"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              <div className="flex gap-8">
+                <div className="flex-none">
+                  <div className="mb-4">
+                    <ChessBoard 
+                      fen={fen} 
+                      width={320}
+                      lastMove={bestMove || undefined}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="depth" className="block text-sm font-medium text-gray-700 mb-1">
-                      Max Depth
+                    <label htmlFor="fen" className="block text-sm font-medium text-gray-700 mb-1">
+                      FEN Position
                     </label>
                     <input
-                      type="number"
-                      id="depth"
-                      value={depth}
-                      onChange={(e) => setDepth(Number(e.target.value))}
-                      min="1"
-                      max="50"
+                      type="text"
+                      id="fen"
+                      value={fen}
+                      onChange={(e) => setFen(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     />
                   </div>
+
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label htmlFor="moveTime" className="block text-sm font-medium text-gray-700 mb-1">
+                        Think Time (ms)
+                      </label>
+                      <input
+                        type="number"
+                        id="moveTime"
+                        value={moveTimeMs}
+                        onChange={(e) => setMoveTimeMs(Number(e.target.value))}
+                        min="100"
+                        step="100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="depth" className="block text-sm font-medium text-gray-700 mb-1">
+                        Max Depth
+                      </label>
+                      <input
+                        type="number"
+                        id="depth"
+                        value={depth}
+                        onChange={(e) => setDepth(Number(e.target.value))}
+                        min="1"
+                        max="50"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={analyzeBestMove}
+                    disabled={analyzing}
+                    className="w-full mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                  >
+                    {analyzing ? 'Analyzing Position...' : 'Find Best Move'}
+                  </button>
+
+                  {bestMove && !error && (
+                    <div className="mt-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
+                      Best move: <code className="bg-green-100 px-2 py-1 rounded">{bestMove}</code>
+                      <button
+                        onClick={applyBestMove}
+                        className="ml-4 bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                      >
+                        Apply Move
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                <button
-                  onClick={analyzeBestMove}
-                  disabled={analyzing}
-                  className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                >
-                  {analyzing ? 'Analyzing Position...' : 'Find Best Move'}
-                </button>
-
-                {bestMove && !error && (
-                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
-                    Best move: <code className="bg-green-100 px-2 py-1 rounded">{bestMove}</code>
-                    <button
-                      onClick={applyBestMove}
-                      className="ml-4 bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                    >
-                      Apply Move
-                    </button>
+                <div className="flex-1">
+                  <div className="bg-gray-100 rounded-lg p-4 h-[600px] overflow-y-auto font-mono text-sm">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-semibold">Engine Communication Log</h3>
+                      <button 
+                        onClick={clearLogs}
+                        className="text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    {engineLogs.map((log, index) => (
+                      <div 
+                        key={index} 
+                        className={`mb-1 ${log.type === 'sent' ? 'text-blue-600' : 'text-green-600'}`}
+                      >
+                        {log.type === 'sent' ? '→' : '←'} {log.message}
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </section>
