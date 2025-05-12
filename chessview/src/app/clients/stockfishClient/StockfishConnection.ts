@@ -46,6 +46,15 @@ interface EvaluationResult {
     infoLines: string[];
 }
 
+interface StaticEvaluation {
+    /** The score in centipawns from the current side's perspective */
+    score: number;
+    /** The mate in X moves if applicable */
+    mate?: number;
+    /** Depth reached in evaluation */
+    depth: number;
+}
+
 export class StockfishConnection {
     private ws: WebSocket | null = null;
     private messageQueue: { command: string; resolve: (value: string[]) => void; reject: (reason: any) => void }[] = [];
@@ -128,7 +137,7 @@ export class StockfishConnection {
      * Returns raw UCI protocol responses from the engine.
      * @param options Configuration options for the evaluation
      */
-    async sendEvaluateRaw(options: EvaluationOptions): Promise<string[]> {
+    async sendFindBestMoveRaw(options: EvaluationOptions): Promise<string[]> {
         const { moveTimeMs, depth, searchMoves } = options;
         const command = ['go'];
         if (moveTimeMs) command.push(`movetime ${moveTimeMs}`);
@@ -142,8 +151,8 @@ export class StockfishConnection {
      * @param options Configuration options for the evaluation
      * @returns Structured evaluation data
      */
-    async sendEvaluate(options: EvaluationOptions): Promise<EvaluationResult> {
-        const responses = await this.sendEvaluateRaw(options);
+    async sendFindBestMove(options: EvaluationOptions): Promise<EvaluationResult> {
+        const responses = await this.sendFindBestMoveRaw(options);
         
         // Store all info lines
         const infoLines = responses.filter(line => line.startsWith('info'));
@@ -194,6 +203,56 @@ export class StockfishConnection {
             bestMove,
             infoLines
         };
+    }
+
+    /**
+     * Get a quick evaluation of the current position.
+     * Uses shallow search (depth 1) to get a basic assessment.
+     * @returns Promise with the quick evaluation result
+     */
+    async getQuickEvaluation(): Promise<StaticEvaluation> {
+        // Search at depth 1 for a quick assessment
+        const responses = await this.sendFindBestMoveRaw({ 
+            depth: 1,
+            moveTimeMs: 100 // Very short time limit as backup
+        });
+        
+        // Parse the evaluation from the info line
+        let score = 0;
+        let mate: number | undefined = undefined;
+        let depth = 0;
+        
+        // Find the deepest info line with a score
+        const infoLines = responses.filter(line => 
+            line.startsWith('info') && line.includes(' score ') && line.includes(' depth ')
+        );
+        
+        if (infoLines.length === 0) {
+            return { score: 0, depth: 0 };
+        }
+        
+        // Get the last (deepest) info line
+        const lastInfoLine = infoLines[infoLines.length - 1];
+        
+        // Extract depth
+        const depthMatch = lastInfoLine.match(/depth\s+(\d+)/);
+        if (depthMatch) {
+            depth = parseInt(depthMatch[1], 10);
+        }
+        
+        // Extract score
+        const cpMatch = lastInfoLine.match(/score\s+cp\s+(-?\d+)/);
+        if (cpMatch) {
+            score = parseInt(cpMatch[1], 10);
+        }
+        
+        // Extract mate
+        const mateMatch = lastInfoLine.match(/score\s+mate\s+(-?\d+)/);
+        if (mateMatch) {
+            mate = parseInt(mateMatch[1], 10);
+        }
+        
+        return { score, mate, depth };
     }
 
     private connect(): Promise<void> {

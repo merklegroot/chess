@@ -15,9 +15,12 @@ export default function DevPage() {
   const [moveTimeMs, setMoveTimeMs] = useState(1000);
   const [depth, setDepth] = useState(15);
   const [bestMove, setBestMove] = useState<string | null>(null);
+  const [ponderMove, setPonderMove] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [engineLogs, setEngineLogs] = useState<Array<{type: 'sent' | 'received', message: string}>>([]);
   const [evaluation, setEvaluation] = useState<{score?: number, depth?: number, mate?: number} | null>(null);
+  const [quickEval, setQuickEval] = useState<{score: number, mate?: number, depth: number} | null>(null);
+  const [gettingQuickEval, setGettingQuickEval] = useState(false);
 
   const addToLog = (type: 'sent' | 'received', message: string) => {
     setEngineLogs(logs => [...logs, { type, message }]);
@@ -47,6 +50,7 @@ export default function DevPage() {
     setAnalyzing(true);
     setError(null);
     setBestMove(null);
+    setPonderMove(null);
     setEvaluation(null);
     clearLogs();
     const connection = new StockfishConnection();
@@ -78,7 +82,7 @@ export default function DevPage() {
       addToLog('sent', goCmd);
       
       // Get structured evaluation data
-      const evaluationResult = await connection.sendEvaluate({
+      const evaluationResult = await connection.sendFindBestMove({
         moveTimeMs,
         depth
       });
@@ -89,6 +93,7 @@ export default function DevPage() {
       
       // Update state with structured data
       setBestMove(evaluationResult.bestMove.move);
+      setPonderMove(evaluationResult.bestMove.ponder || null);
       setEvaluation({
         score: evaluationResult.bestMove.score,
         depth: evaluationResult.bestMove.depth,
@@ -99,6 +104,48 @@ export default function DevPage() {
       addToLog('sent', '(error) ' + (err instanceof Error ? err.message : 'An error occurred'));
     } finally {
       setAnalyzing(false);
+      connection.disconnect();
+      addToLog('sent', '(disconnected)');
+    }
+  };
+
+  const getQuickEvaluation = async () => {
+    setGettingQuickEval(true);
+    setError(null);
+    setQuickEval(null);
+    clearLogs();
+    const connection = new StockfishConnection();
+
+    try {
+      // Initialize engine
+      addToLog('sent', 'uci');
+      const uciResponses = await connection.sendUci();
+      uciResponses.forEach(response => addToLog('received', response));
+
+      addToLog('sent', 'isready');
+      const readyResponses = await connection.sendIsReady();
+      readyResponses.forEach(response => addToLog('received', response));
+      
+      // Set position
+      const positionCmd = `position fen ${fen}`;
+      addToLog('sent', positionCmd);
+      await connection.setPosition({ fen });
+
+      addToLog('sent', 'isready');
+      const readyResponses2 = await connection.sendIsReady();
+      readyResponses2.forEach(response => addToLog('received', response));
+
+      // Get quick evaluation
+      addToLog('sent', 'go depth 1 movetime 100');
+      const evalResult = await connection.getQuickEvaluation();
+      
+      // Update state with evaluation
+      setQuickEval(evalResult);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      addToLog('sent', '(error) ' + (err instanceof Error ? err.message : 'An error occurred'));
+    } finally {
+      setGettingQuickEval(false);
       connection.disconnect();
       addToLog('sent', '(disconnected)');
     }
@@ -115,9 +162,39 @@ export default function DevPage() {
         promotion: bestMove.length > 4 ? bestMove[4] : undefined
       });
       setFen(chess.fen());
-      setBestMove(null); // Clear the best move after applying it
+      setBestMove(null);
+      setPonderMove(null);
+      setEvaluation(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to apply move');
+    }
+  };
+
+  const applyPonderMove = () => {
+    if (!ponderMove) return;
+    
+    try {
+      const chess = new Chess(fen);
+      // First apply best move
+      if (bestMove) {
+        chess.move({
+          from: bestMove.slice(0, 2),
+          to: bestMove.slice(2, 4),
+          promotion: bestMove.length > 4 ? bestMove[4] : undefined
+        });
+      }
+      // Then apply ponder move
+      chess.move({
+        from: ponderMove.slice(0, 2),
+        to: ponderMove.slice(2, 4),
+        promotion: ponderMove.length > 4 ? ponderMove[4] : undefined
+      });
+      setFen(chess.fen());
+      setBestMove(null);
+      setPonderMove(null);
+      setEvaluation(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to apply ponder move');
     }
   };
 
@@ -212,31 +289,71 @@ export default function DevPage() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={analyzeBestMove}
-                    disabled={analyzing}
-                    className="w-full mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                  >
-                    {analyzing ? 'Analyzing Position...' : 'Find Best Move'}
-                  </button>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <button
+                      onClick={analyzeBestMove}
+                      disabled={analyzing || gettingQuickEval}
+                      className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                    >
+                      {analyzing ? 'Finding Best Move...' : 'Find Best Move'}
+                    </button>
+                    
+                    <button
+                      onClick={getQuickEvaluation}
+                      disabled={analyzing || gettingQuickEval}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                    >
+                      {gettingQuickEval ? 'Getting Evaluation...' : 'Quick Position Evaluation'}
+                    </button>
+                  </div>
+
+                  {quickEval !== null && !error && !analyzing && (
+                    <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md">
+                      <div>
+                        {quickEval.mate !== undefined ? (
+                          <span>Quick evaluation: <span className="font-medium">Mate in {Math.abs(quickEval.mate)} {quickEval.mate > 0 ? 'moves' : 'against you'}</span></span>
+                        ) : (
+                          <span>Quick evaluation: <span className="font-medium">{(quickEval.score / 100).toFixed(2)} pawns</span>
+                            {quickEval.score > 0 ? ' (advantage to side to move)' : quickEval.score < 0 ? ' (disadvantage to side to move)' : ' (equal position)'}
+                          </span>
+                        )}
+                        <span className="ml-2 text-xs">(depth {quickEval.depth})</span>
+                      </div>
+                    </div>
+                  )}
 
                   {bestMove && !error && (
                     <div className="mt-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
-                      <div>
-                        Best move: <code className="bg-green-100 px-2 py-1 rounded">{bestMove}</code>
+                      <div className="flex items-center">
+                        <div className="mr-2">Best move:</div>
+                        <code className="bg-green-100 px-2 py-1 rounded">{bestMove}</code>
                         <button
                           onClick={applyBestMove}
-                          className="ml-4 bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                          className="ml-2 bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                         >
-                          Apply Move
+                          Apply
                         </button>
                       </div>
+                      
+                      {ponderMove && (
+                        <div className="flex items-center mt-2">
+                          <div className="mr-2">Expected reply:</div>
+                          <code className="bg-green-100 px-2 py-1 rounded">{ponderMove}</code>
+                          <button
+                            onClick={applyPonderMove}
+                            className="ml-2 bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                          >
+                            Apply Both
+                          </button>
+                        </div>
+                      )}
+                      
                       {evaluation && (
                         <div className="mt-2 text-sm">
                           {evaluation.mate !== undefined ? (
                             <span>Mate in {Math.abs(evaluation.mate)} {evaluation.mate > 0 ? 'moves' : 'against you'}</span>
                           ) : evaluation.score !== undefined ? (
-                            <span>Evaluation: {evaluation.score / 100} pawns</span>
+                            <span>Evaluation: {(evaluation.score / 100).toFixed(2)} pawns</span>
                           ) : null}
                           {evaluation.depth && <span className="ml-2">(depth {evaluation.depth})</span>}
                         </div>
