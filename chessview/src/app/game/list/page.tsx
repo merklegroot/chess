@@ -30,6 +30,21 @@ function getResultDisplay(result: string, white: string, username: string): { te
     : { text: 'Lost', color: 'text-red-600', emoji: '🌧️' };
 }
 
+function getColorIcon(isWhite: boolean): string {
+  return isWhite ? '♔' : '♚';
+}
+
+function getRowColorClass(result: string, white: string, username: string): string {
+  if (result === '1/2-1/2') {
+    return 'bg-gray-50 hover:bg-gray-100';
+  }
+  const isUserWhite = white === username;
+  const isWin = (isUserWhite && result === '1-0') || (!isUserWhite && result === '0-1');
+  return isWin 
+    ? 'bg-green-50 hover:bg-green-100'
+    : 'bg-red-50 hover:bg-red-100';
+}
+
 export default async function GameListPage() {
   const repo = new ChessHistoryRepo();
   const games = await repo.getGames();
@@ -53,7 +68,8 @@ export default async function GameListPage() {
           <div className="text-gray-600 p-3">No games found.</div>
         ) : (
           <>
-            <div className="grid grid-cols-[7rem_1fr_auto] gap-4 px-4 py-2 bg-gray-50 border-y border-gray-200 font-medium text-gray-600">
+            <div className="grid grid-cols-[4rem_7rem_1fr_auto] gap-4 px-4 py-2 bg-gray-50 border-y border-gray-200 font-medium text-gray-600">
+              <div>Color</div>
               <div>Result</div>
               <div>Vs.</div>
               <div>Date</div>
@@ -63,27 +79,30 @@ export default async function GameListPage() {
                 const winner = getWinner(game.result, game.white, game.black);
                 const isDraw = winner === null;
                 const opponent = getOpponent(game.white, game.black, username);
-                const isOpponentWinner = opponent === winner;
+                const isUserWhite = game.white === username;
                 const result = getResultDisplay(game.result, game.white, username);
+                const rowColorClass = getRowColorClass(game.result, game.white, username);
                 
                 return (
                   <Link 
                     href={`/game/details/${index}`}
                     key={index} 
-                    className="grid grid-cols-[7rem_1fr_auto] gap-4 px-4 py-2 hover:bg-gray-50 transition-colors items-center"
+                    className={`grid grid-cols-[4rem_7rem_1fr_auto] gap-4 px-4 py-2 transition-colors items-center ${rowColorClass}`}
                   >
+                    <div className="text-xl">
+                      {getColorIcon(isUserWhite)}
+                    </div>
                     <div className={`font-medium ${result.color} flex items-center gap-2`}>
                       <span className="w-5 text-center">{result.emoji}</span>
                       <span>{result.text}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        {opponent}
-                      </span>
+                    <div className="flex items-center">
+                      <span className="w-5 text-xl mr-3">{getColorIcon(!isUserWhite)}</span>
+                      <span className="font-medium">{opponent}</span>
                       {isDraw && <span className="text-gray-500 text-sm ml-2">(Draw)</span>}
                     </div>
                     <div className="text-sm text-gray-600 tabular-nums">
-                      {new Date(game.date).toLocaleDateString()}
+                      {new Date(game.date).toISOString().split('T')[0]}
                     </div>
                   </Link>
                 );
