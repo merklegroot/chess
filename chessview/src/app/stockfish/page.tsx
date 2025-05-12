@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { Chess } from 'chess.js';
 import { StockfishConnection } from '../clients/stockfishClient/StockfishConnection';
 import ChessBoard from '@/components/ChessBoard';
+import Image from 'next/image';
 
-export default function DevPage() {
+export default function StockfishPage() {
   const [version, setVersion] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -201,7 +202,16 @@ export default function DevPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="bg-white shadow rounded-lg p-6">
-        <h1 className="text-3xl font-bold mb-6">Stockfish</h1>
+        <div className="flex items-center gap-4 mb-6">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/NewLogoSF.png/960px-NewLogoSF.png"
+            alt="Stockfish Logo"
+            width={48}
+            height={48}
+            className="rounded-lg"
+          />
+          <h1 className="text-3xl font-bold">Stockfish Analysis</h1>
+        </div>
         
         <div className="space-y-8">
           <section>
