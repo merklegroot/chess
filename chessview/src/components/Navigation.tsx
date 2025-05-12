@@ -52,7 +52,7 @@ function ClientNavigation() {
     { path: '/opening/list', label: 'Openings' },
     { path: '/dock', label: 'Dock' },
     { path: '/config', label: 'Config' },
-    { path: '/dev', label: 'Dev' }
+    { path: '/stockfish', label: 'Stockfish' }
   ];
 
   return (
