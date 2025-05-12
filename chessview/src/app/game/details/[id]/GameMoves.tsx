@@ -2,7 +2,7 @@
 
 import { chessGameModel } from '@/models/chessGameModel';
 import { Chess } from 'chess.js';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface GameMovesProps {
   game: chessGameModel;
@@ -32,10 +32,22 @@ function getPieceSymbol(move: string, isWhite: boolean): string {
 
 export default function GameMoves({ game }: GameMovesProps) {
   const [selectedMove, setSelectedMove] = useState<number | null>(null);
+  const [fenCache, setFenCache] = useState<{[index: number]: { before: string, after: string }}>({});
 
   // Create array of all moves with their details including FEN positions
   const moves = game.moves.map((move, index) => {
-    // Create a chess instance to calculate FEN positions
+    // Check if FEN positions are already cached
+    if (fenCache[index]) {
+      return {
+        number: Math.floor(index / 2) + 1,
+        isWhite: index % 2 === 0,
+        move,
+        fenBefore: fenCache[index].before,
+        fenAfter: fenCache[index].after
+      };
+    }
+
+    // If not cached, calculate FEN positions
     const chess = new Chess();
     
     // Apply all moves up to this point to get the position before this move
@@ -48,6 +60,12 @@ export default function GameMoves({ game }: GameMovesProps) {
     chess.move(move);
     const fenAfter = chess.fen();
 
+    // Cache the FEN positions
+    setFenCache(prev => ({
+      ...prev,
+      [index]: { before: fenBefore, after: fenAfter }
+    }));
+
     return {
       number: Math.floor(index / 2) + 1,
       isWhite: index % 2 === 0,
@@ -56,6 +74,13 @@ export default function GameMoves({ game }: GameMovesProps) {
       fenAfter
     };
   });
+
+  // Clear cache when component unmounts
+  useEffect(() => {
+    return () => {
+      setFenCache({});
+    };
+  }, []);
 
   return (
     <div className="flex gap-6">
