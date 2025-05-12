@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import AnalyzeButton from './AnalyzeButton';
 import GameSummary from './GameSummary';
+import GameMoves from './GameMoves';
 import { apiClient } from '@/app/clients/apiClient/apiClient';
 
 interface PageProps {
@@ -37,6 +38,40 @@ export default async function GameDetailsPage({ params }: PageProps) {
       <div className="space-y-6">
         {/* Game Summary */}
         <GameSummary game={game} />
+
+        {/* Game Moves */}
+        <GameMoves game={game} />
+
+        {/* Game Analysis */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">Game Analysis</h2>
+          <AnalyzeButton game={game} />
+        </div>
+
+        {/* Additional Game Information */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">Additional Information</h2>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <div className="text-gray-600 mb-1">Event</div>
+              <div className="font-medium">{game.event}</div>
+            </div>
+            <div>
+              <div className="text-gray-600 mb-1">Site</div>
+              <div className="font-medium">{game.site}</div>
+            </div>
+            <div>
+              <div className="text-gray-600 mb-1">Round</div>
+              <div className="font-medium">{game.round || 'Not specified'}</div>
+            </div>
+            {game.termination && (
+              <div>
+                <div className="text-gray-600 mb-1">Termination</div>
+                <div className="font-medium">{game.termination}</div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
