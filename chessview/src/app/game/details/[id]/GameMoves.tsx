@@ -3,6 +3,7 @@
 import { chessGameModel } from '@/models/chessGameModel';
 import { Chess } from 'chess.js';
 import { useState, useEffect } from 'react';
+import MoveDetails from './MoveDetails';
 
 interface GameMovesProps {
   game: chessGameModel;
@@ -121,31 +122,7 @@ export default function GameMoves({ game }: GameMovesProps) {
       </div>
 
       {selectedMove !== null && (
-        <div className="w-96 bg-white rounded-lg shadow p-6 sticky top-6 h-fit">
-          <h2 className="text-xl font-semibold mb-4">
-            Move {moves[selectedMove].number}{!moves[selectedMove].isWhite && '...'} Details
-          </h2>
-          
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-500">Position Before Move</h3>
-              <div className="bg-gray-50 p-3 rounded-md">
-                <code className="text-xs font-mono break-all">
-                  {moves[selectedMove].fenBefore}
-                </code>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-500">Position After Move</h3>
-              <div className="bg-gray-50 p-3 rounded-md">
-                <code className="text-xs font-mono break-all">
-                  {moves[selectedMove].fenAfter}
-                </code>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MoveDetails move={moves[selectedMove]} />
       )}
     </div>
   );
