@@ -67,9 +67,12 @@ export default function MoveDetails({ move }: MoveDetailsProps) {
   const formatEval = (evalResult: EvalResult | null) => {
     if (!evalResult) return null;
     if (evalResult.mate !== undefined) {
-      return `M${Math.abs(evalResult.mate)}${evalResult.mate > 0 ? '' : '-'}`;
+      return `Mate in ${Math.abs(evalResult.mate)} ${evalResult.mate > 0 ? 'moves' : 'against'}`;
     }
-    return evalResult.score !== undefined ? (evalResult.score / 100).toFixed(2) : null;
+    if (evalResult.score === undefined) return null;
+    
+    const scoreNum = evalResult.score / 100;
+    return `${scoreNum > 0 ? '+' : ''}${scoreNum.toFixed(2)} pawns${scoreNum > 0 ? ' advantage' : scoreNum < 0 ? ' disadvantage' : ''}`;
   };
 
   return (
@@ -81,17 +84,24 @@ export default function MoveDetails({ move }: MoveDetailsProps) {
       <div className="space-y-6">
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-gray-500">Position Before Move</h3>
-          <div className="bg-gray-50 p-3 rounded-md flex items-center gap-3">
-            <code className="text-xs font-mono break-all flex-1">
+          <div className="bg-gray-50 p-3 rounded-md">
+            <code className="text-xs font-mono break-all">
               {move.fenBefore}
             </code>
+          </div>
+          <div className="flex items-center gap-2">
             <button
               onClick={() => getQuickEvaluation(move.fenBefore, 'before')}
               disabled={isEvaluating.before}
               className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
             >
-              {isEvaluating.before ? 'Evaluating...' : beforeEval ? formatEval(beforeEval) : 'Evaluate'}
+              {isEvaluating.before ? 'Evaluating...' : 'Evaluate'}
             </button>
+            {beforeEval && (
+              <span className="text-xs text-gray-600">
+                {formatEval(beforeEval)} (depth {beforeEval.depth})
+              </span>
+            )}
           </div>
         </div>
 
@@ -102,17 +112,24 @@ export default function MoveDetails({ move }: MoveDetailsProps) {
             lastMove={getLastMove(move.move)}
           />
           <h3 className="text-sm font-medium text-gray-500">Position After Move</h3>
-          <div className="bg-gray-50 p-3 rounded-md flex items-center gap-3">
-            <code className="text-xs font-mono break-all flex-1">
+          <div className="bg-gray-50 p-3 rounded-md">
+            <code className="text-xs font-mono break-all">
               {move.fenAfter}
             </code>
+          </div>
+          <div className="flex items-center gap-2">
             <button
               onClick={() => getQuickEvaluation(move.fenAfter, 'after')}
               disabled={isEvaluating.after}
               className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
             >
-              {isEvaluating.after ? 'Evaluating...' : afterEval ? formatEval(afterEval) : 'Evaluate'}
+              {isEvaluating.after ? 'Evaluating...' : 'Evaluate'}
             </button>
+            {afterEval && (
+              <span className="text-xs text-gray-600">
+                {formatEval(afterEval)} (depth {afterEval.depth})
+              </span>
+            )}
           </div>
         </div>
       </div>
