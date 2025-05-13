@@ -67,7 +67,7 @@ async function readEval(gameEvalKey: gameEvalKey): Promise<evalResult | undefine
     }
 }
 
-async function getCacheableEval(connection: StockfishConnection, evalKey: gameEvalKey): Promise<evalResult> {
+async function getCacheableEvaluation(connection: StockfishConnection, evalKey: gameEvalKey): Promise<evalResult> {
     const existingEval = await readEval(evalKey);
     if (existingEval)
         return existingEval;
@@ -100,6 +100,6 @@ async function doWork(connection: StockfishConnection, evalKey: evalKey): Promis
     return evalResult;
 }
 
-export const evalRepo = {
-    getCacheableEval
+export const evaluationRepo = {
+    getCacheableEvaluation
 }
