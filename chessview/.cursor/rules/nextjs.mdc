@@ -1,0 +1,31 @@
+# Next.js Project Rules
+# This file contains rules specific to Next.js project organization and best practices.
+
+context {
+    always = true
+}
+
+# Rule: Test files must be organized in __tests__ directories that mirror the source code structure
+rule "test-file-organization" {
+    # Match any TypeScript test files
+    matches = "**/*.test.ts"
+    always = true
+    
+    # The rule enforces that test files:
+    # 1. Must be in a __tests__ directory
+    # 2. Must follow the same folder structure as the source code
+    # Example: src/repo/evalRepo.ts -> src/repo/__tests__/evalRepo.test.ts
+    
+    pattern {
+        # Test files must be in a __tests__ directory
+        path = "**/__tests__/*.test.ts"
+        
+        # The parent directory structure should match the source code
+        # This ensures src/foo/bar/__tests__/baz.test.ts corresponds to src/foo/bar/baz.ts
+        source_file = "${dirname}/../${basename}.ts"
+        
+        error = "Test files must be placed in a __tests__ directory that mirrors the source code structure. Expected location: ${dirname}/__tests__/${basename}.test.ts"
+    }
+}
+
+apply "test-file-organization" 
