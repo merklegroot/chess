@@ -155,11 +155,11 @@ export default function GameMoves({
 
   return (
     <>
-      {/* TEMPORARY: Raw moves display */}
+      {/* TEMPORARY: Evaluations debug display */}
       <div className="mb-4 p-4 bg-yellow-50 border-2 border-yellow-300 rounded">
-        <div className="font-bold text-yellow-800 mb-2">DEBUG: Raw Moves Array</div>
+        <div className="font-bold text-yellow-800 mb-2">DEBUG: Evaluations Object</div>
         <pre className="font-mono text-sm overflow-auto">
-          {JSON.stringify(game.moves, null, 2)}
+          {JSON.stringify(evaluations, null, 2)}
         </pre>
       </div>
 

@@ -28,7 +28,7 @@ export default function GameDetailsPage({ params }: PageProps) {
   const [game, setGame] = useState<chessGameModel | null>(null);
   const [gameDetails, setGameDetails] = useState<GameDetailsResponse | null>(null);
   const [error, setError] = useState<boolean>(false);
-  const [evalCache, setEvalCache] = useState<Record<number, EvalCache>>({});
+  const [evaluations, setEvaluations] = useState<Record<number, EvalCache>>({});
   const [isEvaluatingAll, setIsEvaluatingAll] = useState(false);
   const [evaluationProgress, setEvaluationProgress] = useState({ current: 0, total: 0 });
 
@@ -54,7 +54,7 @@ export default function GameDetailsPage({ params }: PageProps) {
             };
           }
         });
-        setEvalCache(initialEvalCache);
+        setEvaluations(initialEvalCache);
       } catch (error) {
         console.error('Error fetching game data:', error);
         setError(true);
@@ -111,7 +111,7 @@ export default function GameDetailsPage({ params }: PageProps) {
   };
 
   const handleUpdateEvalCache = (moveIndex: number, type: 'before' | 'after', evalResult: EvalResult) => {
-    setEvalCache(prev => ({
+    setEvaluations(prev => ({
       ...prev,
       [moveIndex]: {
         ...prev[moveIndex],
@@ -143,6 +143,28 @@ export default function GameDetailsPage({ params }: PageProps) {
     );
   }
 
+  // Debug: Log the raw data
+  console.log('gameDetails:', gameDetails);
+  console.log('Raw evaluations:', gameDetails.evaluations);
+
+  // Transform evaluations into the format expected by GameMoves
+  const transformedEvaluations: Record<number, EvalCache> = {};
+  Object.entries(gameDetails.evaluations).forEach(([key, eval_]) => {
+    // The key format is "FEN_depth_moveTime", we just want the FEN part
+    const fen = key.split('_')[0];
+    console.log('Processing FEN:', fen);
+    const moveIndex = gameDetails.moves.findIndex(m => m.fenAfter === fen);
+    console.log('Found at move index:', moveIndex);
+    if (moveIndex !== -1) {
+      transformedEvaluations[moveIndex] = {
+        before: null,
+        after: { ...eval_, fen }
+      };
+    }
+  });
+
+  console.log('Transformed evaluations:', transformedEvaluations);
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-6 flex justify-between items-center">
@@ -159,7 +181,7 @@ export default function GameDetailsPage({ params }: PageProps) {
         <GameMoves 
           game={game} 
           processedMoves={gameDetails.moves}
-          evaluations={evalCache}
+          evaluations={transformedEvaluations}
           isEvaluatingAll={isEvaluatingAll}
           evaluationProgress={evaluationProgress}
           onEvaluateAllPress={handleEvaluateAll}
