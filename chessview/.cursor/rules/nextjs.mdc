@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # Next.js Project Rules
 # This file contains rules specific to Next.js project organization and best practices.
 
