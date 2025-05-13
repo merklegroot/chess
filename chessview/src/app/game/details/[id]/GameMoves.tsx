@@ -200,7 +200,12 @@ export default function GameMoves({ game }: GameMovesProps) {
               <tr className="bg-gray-50 text-left">
                 <th className="py-2 px-4 font-medium text-gray-600 w-16">#</th>
                 <th className="py-2 px-4 font-medium text-gray-600">Move</th>
-                <th className="py-2 px-4 font-medium text-gray-600 text-right w-24">Eval</th>
+                <th className="py-2 px-4 font-medium text-gray-600 text-right w-24">
+                  Eval
+                  <div className="text-xs font-normal text-gray-500">
+                    Initial: +0.18
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
