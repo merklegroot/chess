@@ -6,9 +6,58 @@ alwaysApply: true
 # Next.js Project Rules
 # This file contains rules specific to Next.js project organization and best practices.
 
+# Style Guide
+# For Next.js-specific patterns and project structure, we follow the official Next.js documentation:
+# https://nextjs.org/docs
+# In cases where Next.js documentation and other style guides conflict, prefer the Next.js approach.
+#
+# For general TypeScript patterns not covered by Next.js documentation, and unless explicitly specified
+# otherwise in this or other rule files, or when good engineering judgment warrants divergence,
+# this project follows the Google TypeScript Style Guide:
+# https://google.github.io/styleguide/tsguide.html
+
+# Model Naming Conventions
+# All model names MUST use PascalCase (upper camel case). This applies to:
+# - Interfaces
+# - Types
+# - Classes representing data models
+# - Enums
+#
+# Examples:
+#   interface UserProfile { ... }
+#   type GameState = { ... }
+#   class PlayerModel { ... }
+#   enum ChessPieceType { ... }
+#   interface EvaluationResult { ... }
+#
+# Exception: When a model directly represents an external schema (e.g., database, API)
+# that requires a different convention, match that convention instead.
+
 context {
     always = true
 }
+
+# Types vs Interfaces Guidelines
+# Following the TypeScript Handbook recommendations:
+#
+# Use interfaces when:
+# 1. Defining public APIs - interfaces are better for declaration merging
+# 2. Creating object-oriented hierarchies - interfaces support better extends/implements
+# 3. Defining objects that will be extended/implemented
+# Example:
+#   interface UserProfile {
+#     id: string;
+#     name: string;
+#   }
+#
+# Use types when:
+# 1. Defining unions or intersections
+# 2. Creating utility types
+# 3. Defining tuples or arrays with specific structures
+# 4. Needing to use mapped types
+# Example:
+#   type UserRole = 'admin' | 'user' | 'guest';
+#   type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
 
 # Rule: Test files must be organized in __tests__ directories that mirror the source code structure
 rule "test-file-organization" {
