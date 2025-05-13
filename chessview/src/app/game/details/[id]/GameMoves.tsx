@@ -126,7 +126,9 @@ export default function GameMoves({ game }: GameMovesProps) {
         fen
       };
 
-      updateEvalCache(Math.floor(moveNumber - 1), type, evalResultWithFen);
+      // Calculate the correct index based on move number and color
+      const moveIndex = (moveNumber - 1) * 2 + (isWhite ? 0 : 1);
+      updateEvalCache(moveIndex, type, evalResultWithFen);
       return evalResultWithFen;
     } catch (err) {
       console.error('Error getting evaluation:', err);
@@ -136,17 +138,13 @@ export default function GameMoves({ game }: GameMovesProps) {
 
   const evaluateAll = async () => {
     setIsEvaluatingAll(true);
-    const totalEvaluations = moves.length * 2; // before and after for each move
+    const totalEvaluations = moves.length; // only evaluating after positions
     setEvaluationProgress({ current: 0, total: totalEvaluations });
 
     try {
       // Evaluate all moves sequentially
       for (const move of moves) {
-        // Evaluate position before move
-        await getQuickEvaluation(move.fenBefore, 'before', move.number, move.isWhite);
-        setEvaluationProgress(prev => ({ ...prev, current: prev.current + 1 }));
-        
-        // Evaluate position after move
+        // Only evaluate position after move
         await getQuickEvaluation(move.fenAfter, 'after', move.number, move.isWhite);
         setEvaluationProgress(prev => ({ ...prev, current: prev.current + 1 }));
       }
@@ -164,6 +162,20 @@ export default function GameMoves({ game }: GameMovesProps) {
         [type]: evalResult
       }
     }));
+  };
+
+  const formatEval = (evalResult: EvalResult | null) => {
+    if (!evalResult) return null;
+    
+    if (evalResult.mate !== undefined) {
+      return `M${evalResult.mate}`;
+    }
+
+    if (evalResult.score === undefined) return null;
+    
+    // Just show the raw score from Stockfish
+    const scoreNum = evalResult.score / 100;
+    return scoreNum.toFixed(2);
   };
 
   return (
@@ -188,28 +200,53 @@ export default function GameMoves({ game }: GameMovesProps) {
               <tr className="bg-gray-50 text-left">
                 <th className="py-2 px-4 font-medium text-gray-600 w-16">#</th>
                 <th className="py-2 px-4 font-medium text-gray-600">Move</th>
+                <th className="py-2 px-4 font-medium text-gray-600 text-right w-24">Eval</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {moves.map((move, index) => (
-                <tr 
-                  key={index} 
-                  className={`hover:bg-gray-50 cursor-pointer ${selectedMove === index ? 'bg-blue-50' : ''}`}
-                  onClick={() => setSelectedMove(selectedMove === index ? null : index)}
-                >
-                  <td className="py-2 px-4 text-gray-500 font-mono">
-                    {move.number}.{!move.isWhite && '..'}
-                  </td>
-                  <td className="py-2 px-4 font-medium font-mono">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 text-center text-lg">
-                        {getPieceSymbol(move.move, move.isWhite)}
-                      </span>
-                      <span>{move.move}</span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {moves.map((move, index) => {
+                const moveEval = evalCache[index];
+                const evaluation = moveEval?.after ? formatEval(moveEval.after) : null;
+
+                return (
+                  <tr 
+                    key={index} 
+                    className={`hover:bg-gray-50 cursor-pointer ${selectedMove === index ? 'bg-blue-50' : ''}`}
+                    onClick={() => setSelectedMove(selectedMove === index ? null : index)}
+                  >
+                    <td className="py-2 px-4 text-gray-500 font-mono">
+                      {move.number}.{!move.isWhite && '..'}
+                    </td>
+                    <td className="py-2 px-4 font-medium font-mono">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 text-center text-lg">
+                          {getPieceSymbol(move.move, move.isWhite)}
+                        </span>
+                        <span>{move.move}</span>
+                      </div>
+                    </td>
+                    <td className="py-2 px-4 font-mono text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {evaluation ? (
+                          <span>
+                            {evaluation}
+                          </span>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent row selection
+                              getQuickEvaluation(move.fenAfter, 'after', move.number, move.isWhite);
+                            }}
+                            className="px-2 py-0.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                          >
+                            Evaluate
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
