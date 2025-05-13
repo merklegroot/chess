@@ -13,17 +13,21 @@ interface MoveDetailsProps {
     fenAfter: string;
     move: string;
   };
+  cachedEval: {
+    before: EvalResult | null;
+    after: EvalResult | null;
+  };
+  onEvalUpdate: (type: 'before' | 'after', evalResult: EvalResult) => void;
 }
 
 interface EvalResult {
   score?: number;
   mate?: number;
   depth: number;
+  fen: string;
 }
 
-export default function MoveDetails({ move }: MoveDetailsProps) {
-  const [beforeEval, setBeforeEval] = useState<EvalResult | null>(null);
-  const [afterEval, setAfterEval] = useState<EvalResult | null>(null);
+export default function MoveDetails({ move, cachedEval, onEvalUpdate }: MoveDetailsProps) {
   const [isEvaluating, setIsEvaluating] = useState<{ before: boolean; after: boolean }>({ before: false, after: false });
 
   // Get the from and to squares for the arrow
@@ -50,12 +54,22 @@ export default function MoveDetails({ move }: MoveDetailsProps) {
       await connection.setPosition({ fen });
       await connection.sendIsReady();
       
-      const evalResult = await connection.sendSearchMoves();
-      if (type === 'before') {
-        setBeforeEval(evalResult);
-      } else {
-        setAfterEval(evalResult);
-      }
+      // Use findBestMove with a reasonable depth for more accurate evaluation
+      const result = await connection.findBestMove({
+        depth: 15,
+        moveTimeMs: 1000
+      });
+
+      // Convert the result to our EvalResult format
+      const evalResult: EvalResult = {
+        score: result.bestMove.score,
+        mate: result.bestMove.mate,
+        depth: result.bestMove.depth || 0,
+        fen: fen
+      };
+
+      // Update the cache through the parent component
+      onEvalUpdate(type, evalResult);
     } catch (err) {
       console.error('Error getting evaluation:', err);
     } finally {
@@ -66,13 +80,21 @@ export default function MoveDetails({ move }: MoveDetailsProps) {
 
   const formatEval = (evalResult: EvalResult | null) => {
     if (!evalResult) return null;
+
+    // Check if it's Black's turn
+    const isBlackToMove = evalResult.fen.includes(' b ');
+    
     if (evalResult.mate !== undefined) {
-      return `Mate in ${Math.abs(evalResult.mate)} ${evalResult.mate > 0 ? 'moves' : 'against'}`;
+      const mateScore = isBlackToMove ? -evalResult.mate : evalResult.mate;
+      return `Mate in ${Math.abs(mateScore)} for ${mateScore > 0 ? 'White' : 'Black'}`;
     }
+
     if (evalResult.score === undefined) return null;
     
-    const scoreNum = evalResult.score / 100;
-    return `${scoreNum > 0 ? '+' : ''}${scoreNum.toFixed(2)} pawns${scoreNum > 0 ? ' advantage' : scoreNum < 0 ? ' disadvantage' : ''}`;
+    // If it's Black's turn, flip the score to show White's perspective
+    const scoreNum = (isBlackToMove ? -evalResult.score : evalResult.score) / 100;
+    
+    return `${scoreNum > 0 ? '+' : ''}${scoreNum.toFixed(2)} pawns${scoreNum > 0 ? ' advantage for White' : scoreNum < 0 ? ' advantage for Black' : ' (equal)'}`;
   };
 
   return (
@@ -91,15 +113,15 @@ export default function MoveDetails({ move }: MoveDetailsProps) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => getQuickEvaluation(move.fenBefore, 'before')}
-              disabled={isEvaluating.before}
+              onClick={() => !cachedEval.before && getQuickEvaluation(move.fenBefore, 'before')}
+              disabled={isEvaluating.before || !!cachedEval.before}
               className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
             >
-              {isEvaluating.before ? 'Evaluating...' : 'Evaluate'}
+              {isEvaluating.before ? 'Evaluating...' : cachedEval.before ? 'Evaluated' : 'Evaluate'}
             </button>
-            {beforeEval && (
+            {(cachedEval.before || isEvaluating.before) && (
               <span className="text-xs text-gray-600">
-                {formatEval(beforeEval)} (depth {beforeEval.depth})
+                {isEvaluating.before ? 'Calculating...' : formatEval(cachedEval.before)} {cachedEval.before && `(depth ${cachedEval.before.depth})`}
               </span>
             )}
           </div>
@@ -108,7 +130,7 @@ export default function MoveDetails({ move }: MoveDetailsProps) {
         <div className="space-y-2">
           <ChessBoard 
             fen={move.fenAfter} 
-            width={300}
+            width={250}
             lastMove={getLastMove(move.move)}
           />
           <h3 className="text-sm font-medium text-gray-500">Position After Move</h3>
@@ -119,15 +141,15 @@ export default function MoveDetails({ move }: MoveDetailsProps) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => getQuickEvaluation(move.fenAfter, 'after')}
-              disabled={isEvaluating.after}
+              onClick={() => !cachedEval.after && getQuickEvaluation(move.fenAfter, 'after')}
+              disabled={isEvaluating.after || !!cachedEval.after}
               className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
             >
-              {isEvaluating.after ? 'Evaluating...' : 'Evaluate'}
+              {isEvaluating.after ? 'Evaluating...' : cachedEval.after ? 'Evaluated' : 'Evaluate'}
             </button>
-            {afterEval && (
+            {(cachedEval.after || isEvaluating.after) && (
               <span className="text-xs text-gray-600">
-                {formatEval(afterEval)} (depth {afterEval.depth})
+                {isEvaluating.after ? 'Calculating...' : formatEval(cachedEval.after)} {cachedEval.after && `(depth ${cachedEval.after.depth})`}
               </span>
             )}
           </div>

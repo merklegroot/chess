@@ -9,6 +9,18 @@ interface GameMovesProps {
   game: chessGameModel;
 }
 
+interface EvalResult {
+  score?: number;
+  mate?: number;
+  depth: number;
+  fen: string;
+}
+
+interface EvalCache {
+  before: EvalResult | null;
+  after: EvalResult | null;
+}
+
 const pieceSymbols: { [key: string]: { white: string; black: string } } = {
   'K': { white: '♔', black: '♚' },
   'Q': { white: '♕', black: '♛' },
@@ -34,6 +46,7 @@ function getPieceSymbol(move: string, isWhite: boolean): string {
 export default function GameMoves({ game }: GameMovesProps) {
   const [selectedMove, setSelectedMove] = useState<number | null>(null);
   const [fenCache, setFenCache] = useState<{[index: number]: { before: string, after: string }}>({});
+  const [evalCache, setEvalCache] = useState<{[index: number]: EvalCache}>({});
 
   // Create array of all moves with their details including FEN positions
   const moves = game.moves.map((move, index) => {
@@ -76,12 +89,23 @@ export default function GameMoves({ game }: GameMovesProps) {
     };
   });
 
-  // Clear cache when component unmounts
+  // Clear caches when component unmounts
   useEffect(() => {
     return () => {
       setFenCache({});
+      setEvalCache({});
     };
   }, []);
+
+  const updateEvalCache = (moveIndex: number, type: 'before' | 'after', evalResult: EvalResult) => {
+    setEvalCache(prev => ({
+      ...prev,
+      [moveIndex]: {
+        ...prev[moveIndex],
+        [type]: evalResult
+      }
+    }));
+  };
 
   return (
     <div className="flex gap-6">
@@ -122,7 +146,11 @@ export default function GameMoves({ game }: GameMovesProps) {
       </div>
 
       {selectedMove !== null && (
-        <MoveDetails move={moves[selectedMove]} />
+        <MoveDetails 
+          move={moves[selectedMove]} 
+          cachedEval={evalCache[selectedMove] || { before: null, after: null }}
+          onEvalUpdate={(type, evalResult) => updateEvalCache(selectedMove, type, evalResult)}
+        />
       )}
     </div>
   );
