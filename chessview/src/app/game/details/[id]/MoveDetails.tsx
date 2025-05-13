@@ -3,28 +3,28 @@
 import ChessBoard from '@/components/ChessBoard';
 import { Chess } from 'chess.js';
 import { useState } from 'react';
-import { StockfishConnection } from '@/app/clients/stockfishClient/StockfishConnection';
 import { evalResult } from '@/models/evalResult';
 
 interface evalResultWithFen extends evalResult {
     fen: string;
 }
 
+interface GameMove {
+  number: number;
+  isWhite: boolean;
+  fenBefore: string;
+  fenAfter: string;
+  move: string;
+}
+
 interface MoveDetailsProps {
-  move: {
-    number: number;
-    isWhite: boolean;
-    fenBefore: string;
-    fenAfter: string;
-    move: string;
-  };
+  move: GameMove;
   cachedEval: {
     before: evalResultWithFen | null;
     after: evalResultWithFen | null;
   };
   onEvalUpdate: (type: 'before' | 'after', evalResult: evalResult) => void;
 }
-
 
 export default function MoveDetails({ move, cachedEval, onEvalUpdate }: MoveDetailsProps) {
   const [isEvaluating, setIsEvaluating] = useState<{ before: boolean; after: boolean }>({ before: false, after: false });
@@ -41,40 +41,6 @@ export default function MoveDetails({ move, cachedEval, onEvalUpdate }: MoveDeta
       console.error('Error getting move squares:', e);
     }
     return undefined;
-  };
-
-  const getQuickEvaluation = async (fen: string, type: 'before' | 'after') => {
-    setIsEvaluating(prev => ({ ...prev, [type]: true }));
-    const connection = new StockfishConnection();
-
-    try {
-      await connection.sendUci();
-      await connection.sendIsReady();
-      await connection.setPosition({ fen });
-      await connection.sendIsReady();
-      
-      // Use findBestMove with a reasonable depth for more accurate evaluation
-      const result = await connection.findBestMove({
-        depth: 15,
-        moveTimeMs: 1000
-      });
-
-      // Convert the result to our evalResult format
-      const evalResult: evalResultWithFen = {
-        score: result.bestMove.score,
-        mate: result.bestMove.mate,
-        depth: result.bestMove.depth || 0,
-        fen: fen
-      };
-
-      // Update the cache through the parent component
-      onEvalUpdate(type, evalResult);
-    } catch (err) {
-      console.error('Error getting evaluation:', err);
-    } finally {
-      setIsEvaluating(prev => ({ ...prev, [type]: false }));
-      connection.disconnect();
-    }
   };
 
   const formatEval = (evalResult: evalResultWithFen | null) => {
@@ -111,18 +77,9 @@ export default function MoveDetails({ move, cachedEval, onEvalUpdate }: MoveDeta
             </code>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => !cachedEval.before && getQuickEvaluation(move.fenBefore, 'before')}
-              disabled={isEvaluating.before || !!cachedEval.before}
-              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-            >
-              {isEvaluating.before ? 'Evaluating...' : cachedEval.before ? 'Evaluated' : 'Evaluate'}
-            </button>
-            {(cachedEval.before || isEvaluating.before) && (
-              <span className="text-xs text-gray-600">
-                {isEvaluating.before ? 'Calculating...' : formatEval(cachedEval.before)} {cachedEval.before && `(depth ${cachedEval.before.depth})`}
-              </span>
-            )}
+            <span className="text-xs text-gray-600">
+              {formatEval(cachedEval.before)} {cachedEval.before && `(depth ${cachedEval.before.depth})`}
+            </span>
           </div>
         </div>
 
@@ -139,18 +96,9 @@ export default function MoveDetails({ move, cachedEval, onEvalUpdate }: MoveDeta
             </code>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => !cachedEval.after && getQuickEvaluation(move.fenAfter, 'after')}
-              disabled={isEvaluating.after || !!cachedEval.after}
-              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-            >
-              {isEvaluating.after ? 'Evaluating...' : cachedEval.after ? 'Evaluated' : 'Evaluate'}
-            </button>
-            {(cachedEval.after || isEvaluating.after) && (
-              <span className="text-xs text-gray-600">
-                {isEvaluating.after ? 'Calculating...' : formatEval(cachedEval.after)} {cachedEval.after && `(depth ${cachedEval.after.depth})`}
-              </span>
-            )}
+            <span className="text-xs text-gray-600">
+              {formatEval(cachedEval.after)} {cachedEval.after && `(depth ${cachedEval.after.depth})`}
+            </span>
           </div>
         </div>
       </div>

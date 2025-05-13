@@ -29,7 +29,7 @@ function getEvalKeyString(evalKey: evalKey): string {
 }
 
 function getEvalFilePath(gameId: string): string {
-    return path.join(EVAL_DIR, `${gameId}.json`);
+    return path.join(EVAL_DIR, `game_${gameId}.json`);
 }
 
 async function writeEval(gameEvalKey: gameEvalKey, evalResult: evalResult): Promise<void> {
