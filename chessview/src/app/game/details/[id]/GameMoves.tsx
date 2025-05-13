@@ -49,7 +49,7 @@ function getPieceSymbol(move: string, isWhite: boolean): string {
 interface GameMovesProps {
   game: chessGameModel;
   processedMoves: GameMove[];
-  evalCache: Record<number, EvalCache>;
+  evaluations: Record<number, EvalCache>;
   isEvaluatingAll: boolean;
   evaluationProgress: { current: number; total: number };
   onEvaluateAllPress: () => Promise<void>;
@@ -60,7 +60,7 @@ interface GameMovesProps {
 export default function GameMoves({ 
   game, 
   processedMoves, 
-  evalCache,
+  evaluations,
   isEvaluatingAll,
   evaluationProgress,
   onEvaluateAllPress,
@@ -211,12 +211,12 @@ export default function GameMoves({
                 const whiteMoveIndex = i * 2;
                 const blackMoveIndex = i * 2 + 1;
 
-                const whiteEval = evalCache[whiteMoveIndex]?.after;
-                const prevWhiteEval = whiteMoveIndex > 0 ? evalCache[whiteMoveIndex - 1]?.after : null;
+                const whiteEval = evaluations[whiteMoveIndex]?.after;
+                const prevWhiteEval = whiteMoveIndex > 0 ? evaluations[whiteMoveIndex - 1]?.after : null;
                 const whiteDelta = formatDelta(whiteEval?.score, prevWhiteEval?.score);
                 const whiteQuality = getMoveQuality(whiteDelta, true);
 
-                const blackEval = blackMove ? evalCache[blackMoveIndex]?.after : null;
+                const blackEval = blackMove ? evaluations[blackMoveIndex]?.after : null;
                 const blackDelta = formatDelta(blackEval?.score, whiteEval?.score);
                 const blackQuality = getMoveQuality(blackDelta, false);
 
@@ -265,7 +265,7 @@ export default function GameMoves({
         {selectedMove !== null && (
           <MoveDetails 
             move={moves[selectedMove]}
-            cachedEval={evalCache[selectedMove] || { before: null, after: null }}
+            cachedEval={evaluations[selectedMove] || { before: null, after: null }}
             onEvalUpdate={(type, evalResult) => {
               const moveIndex = selectedMove;
               const evalResultWithFen: EvalResult = {

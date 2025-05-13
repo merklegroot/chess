@@ -159,7 +159,7 @@ export default function GameDetailsPage({ params }: PageProps) {
         <GameMoves 
           game={game} 
           processedMoves={gameDetails.moves}
-          evalCache={evalCache}
+          evaluations={evalCache}
           isEvaluatingAll={isEvaluatingAll}
           evaluationProgress={evaluationProgress}
           onEvaluateAllPress={handleEvaluateAll}
