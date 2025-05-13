@@ -1,5 +1,6 @@
 import { GameMoveApiModel } from '@/models/GameMoveApiModel';
 import { evaluationRepo } from '@/repo/evalulationRepo';
+import { ChessHistoryRepo } from '@/repo/chessHistoryRepo';
 import { Chess } from 'chess.js';
 import { NextResponse } from 'next/server';
 
@@ -10,24 +11,22 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
-        const gameId = params.id;
+        const { id } = params;
         
         // Get all cached evaluations for this game
-        const evaluations = await evaluationRepo.getAllCachedEvals(gameId);
+        const evaluations = await evaluationRepo.getAllCachedEvals(id);
         
-        // Get game data from your database
-        // For now, we'll just use the moves from the URL
-        const url = new URL(request.url);
-        const movesParam = url.searchParams.get('moves');
-        if (!movesParam) {
-            return NextResponse.json({ error: 'No moves provided' }, { status: 400 });
+        // Get game data from the repository
+        const repo = new ChessHistoryRepo();
+        const game = await repo.getGame(parseInt(id));
+        
+        if (!game) {
+            return NextResponse.json({ error: 'Game not found' }, { status: 404 });
         }
-        
-        const moves = movesParam.split(',');
+
+        // Process moves to get FEN positions
         const chess = new Chess();
-        
-        // Process each move to get FEN positions
-        const processedMoves: GameMoveApiModel[] = moves.map((move, index) => {
+        const processedMoves: GameMoveApiModel[] = game.moves.map((move, index) => {
             const fenBefore = chess.fen();
             chess.move(move);
             const fenAfter = chess.fen();
@@ -42,7 +41,7 @@ export async function GET(
         });
 
         return NextResponse.json({
-            id: gameId,
+            id,
             moves: processedMoves,
             cachedEvals: evaluations
         });

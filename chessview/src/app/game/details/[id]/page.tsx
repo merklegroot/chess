@@ -5,11 +5,11 @@ import AnalyzeButton from './AnalyzeButton';
 import GameSummary from './GameSummary';
 import GameMoves from './GameMoves';
 import { apiClient } from '@/app/clients/apiClient/apiClient';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { chessGameModel } from '@/models/chessGameModel';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 interface GameDetails {
@@ -25,6 +25,7 @@ interface GameDetails {
 }
 
 export default function GameDetailsPage({ params }: PageProps) {
+  const { id } = use(params);
   const [game, setGame] = useState<chessGameModel | null>(null);
   const [gameDetails, setGameDetails] = useState<GameDetails | null>(null);
   const [error, setError] = useState<boolean>(false);
@@ -33,11 +34,11 @@ export default function GameDetailsPage({ params }: PageProps) {
     const fetchData = async () => {
       try {
         // Fetch basic game data
-        const gameData = await apiClient.getGameById(params.id);
+        const gameData = await apiClient.getGameById(id);
         setGame(gameData);
 
         // Fetch detailed game data including evaluations
-        const response = await fetch(`/api/game-details/${params.id}?moves=${gameData.moves.join(',')}`);
+        const response = await fetch(`/api/game-details/${id}`);
         if (!response.ok) throw new Error('Failed to fetch game details');
         const details = await response.json();
         setGameDetails(details);
@@ -48,7 +49,7 @@ export default function GameDetailsPage({ params }: PageProps) {
     };
 
     fetchData();
-  }, [params.id]);
+  }, [id]);
 
   if (error) {
     return (
