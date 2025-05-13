@@ -16,147 +16,93 @@ alwaysApply: true
 # this project follows the Google TypeScript Style Guide:
 # https://google.github.io/styleguide/tsguide.html
 
-# Model Naming Conventions
-# All model names MUST use PascalCase (upper camel case). This applies to:
-# - Interfaces
-# - Types
-# - Classes representing data models
-# - Enums
+# API Design Patterns
+# For internal page-specific APIs:
+# Prefer tailored, page-specific responses over strict REST conventions. This reduces:
+# - Number of round trips
+# - Data overfetching
+# - Client-side data manipulation
+# - Network bandwidth
 #
-# Examples:
-#   interface UserProfile { ... }
-#   type GameState = { ... }
-#   class PlayerModel { ... }
-#   enum ChessPieceType { ... }
-#   interface EvaluationResult { ... }
+# Example (Internal Page API):
+#   // Good: Single endpoint returning exactly what the page needs
+#   GET /api/dashboard
+#   Response: {
+#     user: { name, preferences },
+#     recentGames: [ simplified game data ],
+#     stats: { aggregated statistics }
+#   }
 #
-# Exception: When a model directly represents an external schema (e.g., database, API)
-# that requires a different convention, match that convention instead.
+#   // Avoid: Multiple REST endpoints requiring client assembly
+#   GET /api/users/current
+#   GET /api/games?user=current&limit=5
+#   GET /api/stats/user/current
+#
+# For external/public APIs:
+# Follow REST conventions to ensure:
+# - Predictable behavior
+# - Standard resource operations
+# - Better documentation
+# - Easier integration for external consumers
+#
+# Example (External API):
+#   GET /api/v1/games/{id}
+#   GET /api/v1/users/{id}
+#   GET /api/v1/users/{id}/statistics
 
-# Component Logic Separation
-# React components should focus on presentation and user interaction handling.
-# Business logic, data transformation, and complex operations should be moved outside
-# the component when possible.
+# API Route Organization
+# API route files (e.g., route.ts in app/api routes) should ONLY contain:
+# - Request parsing and validation
+# - Response formatting
+# - Error handling
+# - Calling business logic functions
 #
-# Guidelines:
-# 1. Components should primarily handle:
-#    - Rendering UI elements
-#    - Managing component-specific state
-#    - Handling user interactions
-#    - Coordinating with parent components
-#
-# 2. Extract to separate files/functions:
-#    - Data processing and transformation
-#    - Business logic and validation
-#    - API interaction logic
-#    - Complex calculations
-#    - Utility functions used by multiple components
+# All other logic should be moved to separate files:
+# - Business logic → services/
+# - Data access → repositories/
+# - Workflows → workflows/
+# - Validation schemas → schemas/
+# - Types/interfaces → types/
 #
 # Example:
-#   // Bad: Logic embedded in component
-#   function ChessBoard() {
-#     function calculateValidMoves(position) {
-#       // Complex chess logic here
-#     }
-#     return <div>...</div>
-#   }
-#
-#   // Good: Logic extracted to service
-#   // chessLogic.ts
-#   export function calculateValidMoves(position) {
-#     // Complex chess logic here
-#   }
-#
-#   // ChessBoard.tsx
-#   import { calculateValidMoves } from './chessLogic';
-#   function ChessBoard() {
-#     // Only uses the logic, doesn't implement it
-#     return <div>...</div>
-#   }
-#
-# Benefits:
-# - Improved testability of business logic
-# - Better code reuse
-# - Clearer component responsibilities
-# - Easier maintenance and refactoring
-# - Better separation of concerns
-
-# Singleton Pattern Usage
-# Use singletons sparingly and only when there is a compelling reason. Valid use cases include:
-# - Managing shared resources (e.g., database connections, cache instances)
-# - Enforcing exactly one instance of a service (e.g., logging service, configuration manager)
-# - Coordinating state across an application
-#
-# When implementing a singleton:
-# 1. Document WHY a singleton is necessary for this specific case
-# 2. Consider whether dependency injection would be a better alternative
-# 3. Ensure thread-safety if the singleton manages mutable state
-# 4. Consider the impact on testing and whether the singleton can be mocked
-#
-# Example of justified singleton use:
-#   // Database connection pool - singleton is appropriate because:
-#   // 1. We want to limit the total number of connections
-#   // 2. The connection configuration is application-wide
-#   // 3. Creating multiple instances would waste resources
-#   class DatabasePool {
-#     private static instance: DatabasePool;
-#     private constructor() { ... }
+#   // Bad: Business logic in API route
+#   // app/api/game/analyze/route.ts
+#   export async function POST(req: Request) {
+#     const { fen } = await req.json();
 #     
-#     static getInstance(): DatabasePool {
-#       if (!DatabasePool.instance) {
-#         DatabasePool.instance = new DatabasePool();
+#     // Business logic doesn't belong here
+#     const pieces = fen.split(' ')[0];
+#     const score = calculateMaterialScore(pieces);
+#     const tactics = findTacticalMotifs(fen);
+#     return Response.json({ score, tactics });
+#   }
+#
+#   // Good: API route only handles request/response
+#   // app/api/game/analyze/route.ts
+#   import { analyzePosition } from '@/services/gameAnalysis';
+#   import { validateFen } from '@/utils/validation';
+#
+#   export async function POST(req: Request) {
+#     try {
+#       const { fen } = await req.json();
+#       if (!validateFen(fen)) {
+#         return Response.json({ error: 'Invalid FEN' }, { status: 400 });
 #       }
-#       return DatabasePool.instance;
+#       
+#       const analysis = await analyzePosition(fen);
+#       return Response.json(analysis);
+#     } catch (error) {
+#       return Response.json({ error: 'Analysis failed' }, { status: 500 });
 #     }
 #   }
-
-context {
-    always = true
-}
-
-# Types vs Interfaces Guidelines
-# Following the TypeScript Handbook recommendations:
 #
-# Use interfaces when:
-# 1. Defining public APIs - interfaces are better for declaration merging
-# 2. Creating object-oriented hierarchies - interfaces support better extends/implements
-# 3. Defining objects that will be extended/implemented
-# Example:
-#   interface UserProfile {
-#     id: string;
-#     name: string;
+#   // Business logic lives in a service
+#   // services/gameAnalysis.ts
+#   export async function analyzePosition(fen: string) {
+#     const pieces = parseFen(fen);
+#     const score = calculateMaterialScore(pieces);
+#     const tactics = findTacticalMotifs(fen);
+#     return { score, tactics };
 #   }
-#
-# Use types when:
-# 1. Defining unions or intersections
-# 2. Creating utility types
-# 3. Defining tuples or arrays with specific structures
-# 4. Needing to use mapped types
-# Example:
-#   type UserRole = 'admin' | 'user' | 'guest';
-#   type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
 
-# Rule: Test files must be organized in __tests__ directories that mirror the source code structure
-rule "test-file-organization" {
-    # Match any TypeScript test files
-    matches = "**/*.test.ts"
-    always = true
-    
-    # The rule enforces that test files:
-    # 1. Must be in a __tests__ directory
-    # 2. Must follow the same folder structure as the source code
-    # Example: src/repo/evalRepo.ts -> src/repo/__tests__/evalRepo.test.ts
-    
-    pattern {
-        # Test files must be in a __tests__ directory
-        path = "**/__tests__/*.test.ts"
-        
-        # The parent directory structure should match the source code
-        # This ensures src/foo/bar/__tests__/baz.test.ts corresponds to src/foo/bar/baz.ts
-        source_file = "${dirname}/../${basename}.ts"
-        
-        error = "Test files must be placed in a __tests__ directory that mirrors the source code structure. Expected location: ${dirname}/__tests__/${basename}.test.ts"
-    }
-}
-
-apply "test-file-organization"
+[Previous content continues...]
