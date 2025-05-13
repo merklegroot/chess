@@ -4,6 +4,11 @@ import ChessBoard from '@/components/ChessBoard';
 import { Chess } from 'chess.js';
 import { useState } from 'react';
 import { StockfishConnection } from '@/app/clients/stockfishClient/StockfishConnection';
+import { evalResult } from '@/models/evalResult';
+
+interface evalResultWithFen extends evalResult {
+    fen: string;
+}
 
 interface MoveDetailsProps {
   move: {
@@ -14,18 +19,12 @@ interface MoveDetailsProps {
     move: string;
   };
   cachedEval: {
-    before: EvalResult | null;
-    after: EvalResult | null;
+    before: evalResultWithFen | null;
+    after: evalResultWithFen | null;
   };
-  onEvalUpdate: (type: 'before' | 'after', evalResult: EvalResult) => void;
+  onEvalUpdate: (type: 'before' | 'after', evalResult: evalResult) => void;
 }
 
-interface EvalResult {
-  score?: number;
-  mate?: number;
-  depth: number;
-  fen: string;
-}
 
 export default function MoveDetails({ move, cachedEval, onEvalUpdate }: MoveDetailsProps) {
   const [isEvaluating, setIsEvaluating] = useState<{ before: boolean; after: boolean }>({ before: false, after: false });
@@ -60,8 +59,8 @@ export default function MoveDetails({ move, cachedEval, onEvalUpdate }: MoveDeta
         moveTimeMs: 1000
       });
 
-      // Convert the result to our EvalResult format
-      const evalResult: EvalResult = {
+      // Convert the result to our evalResult format
+      const evalResult: evalResultWithFen = {
         score: result.bestMove.score,
         mate: result.bestMove.mate,
         depth: result.bestMove.depth || 0,
@@ -78,7 +77,7 @@ export default function MoveDetails({ move, cachedEval, onEvalUpdate }: MoveDeta
     }
   };
 
-  const formatEval = (evalResult: EvalResult | null) => {
+  const formatEval = (evalResult: evalResultWithFen | null) => {
     if (!evalResult) return null;
 
     // Check if it's Black's turn
