@@ -3,13 +3,20 @@ import { evaluationRepo } from '@/repo/evalulationRepo';
 import { ChessHistoryRepo } from '@/repo/chessHistoryRepo';
 import { Chess } from 'chess.js';
 import { NextResponse } from 'next/server';
+import { evalResult } from '@/models/evalResult';
 
 export const runtime = 'nodejs';
+
+export interface GameDetailsResponse {
+    id: string;
+    moves: GameMoveApiModel[];
+    cachedEvals: Record<string, evalResult>;
+}
 
 export async function GET(
     request: Request,
     { params }: { params: { id: string } }
-) {
+): Promise<NextResponse<GameDetailsResponse | { error: string }>> {
     try {
         const { id } = params;
         
@@ -40,11 +47,13 @@ export async function GET(
             };
         });
 
-        return NextResponse.json({
+        const response: GameDetailsResponse = {
             id,
             moves: processedMoves,
             cachedEvals: evaluations
-        });
+        };
+
+        return NextResponse.json(response);
         
     } catch (error) {
         console.error('Error processing game details:', error);

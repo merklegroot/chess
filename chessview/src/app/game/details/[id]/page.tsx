@@ -7,27 +7,16 @@ import GameMoves from './GameMoves';
 import { apiClient } from '@/app/clients/apiClient/apiClient';
 import { useEffect, useState, use } from 'react';
 import { chessGameModel } from '@/models/chessGameModel';
+import { GameDetailsResponse } from '@/app/api/game-details/[id]/route';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-interface GameDetails {
-  id: string;
-  moves: {
-    number: number;
-    isWhite: boolean;
-    move: string;
-    fenBefore: string;
-    fenAfter: string;
-  }[];
-  cachedEvals: Record<string, any>;
-}
-
 export default function GameDetailsPage({ params }: PageProps) {
   const { id } = use(params);
   const [game, setGame] = useState<chessGameModel | null>(null);
-  const [gameDetails, setGameDetails] = useState<GameDetails | null>(null);
+  const [gameDetails, setGameDetails] = useState<GameDetailsResponse | null>(null);
   const [error, setError] = useState<boolean>(false);
 
   useEffect(() => {
@@ -38,9 +27,7 @@ export default function GameDetailsPage({ params }: PageProps) {
         setGame(gameData);
 
         // Fetch detailed game data including evaluations
-        const response = await fetch(`/api/game-details/${id}`);
-        if (!response.ok) throw new Error('Failed to fetch game details');
-        const details = await response.json();
+        const details = await apiClient.getGameDetails(id);
         setGameDetails(details);
       } catch (error) {
         console.error('Error fetching game data:', error);
