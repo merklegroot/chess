@@ -178,6 +178,32 @@ export default function GameMoves({ game }: GameMovesProps) {
     return scoreNum.toFixed(2);
   };
 
+  const formatDelta = (current: number | undefined, previous: number | undefined | null) => {
+    if (current === undefined || previous === undefined || previous === null) return null;
+
+    const delta = current - previous;
+    const sign = delta > 0 ? '+' : '';
+    return `${sign}${delta.toFixed(2)}`;
+  };
+
+  const getMoveQuality = (delta: number | null, isWhite: boolean): { text: string; color: string } => {
+    if (delta === null) return { text: '', color: '' };
+    
+    // Negative evaluations favor White
+    // For White: negative delta is good (position improved for White)
+    // For Black: negative delta is bad (position improved for White)
+    const playerDelta = isWhite ? -delta : delta;
+    
+    // Thresholds for move quality from the player's perspective
+    if (playerDelta > 2) return { text: 'Brilliant!', color: 'text-purple-600' };
+    if (playerDelta > 1) return { text: 'Great!', color: 'text-green-600' };
+    if (playerDelta > 0.5) return { text: 'Good', color: 'text-emerald-600' };
+    if (playerDelta > -0.2) return { text: 'Solid', color: 'text-gray-600' };
+    if (playerDelta > -0.5) return { text: 'Inaccurate', color: 'text-yellow-600' };
+    if (playerDelta > -1) return { text: 'Mistake', color: 'text-orange-600' };
+    return { text: 'Blunder', color: 'text-red-600' };
+  };
+
   return (
     <div className="flex gap-6">
       <div className="flex-1 bg-white rounded-lg shadow p-6">
@@ -206,12 +232,27 @@ export default function GameMoves({ game }: GameMovesProps) {
                     Initial: +0.18
                   </div>
                 </th>
+                <th className="py-2 px-4 font-medium text-gray-600 text-right w-24">Δ</th>
+                <th className="py-2 px-4 font-medium text-gray-600 w-28">Quality</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {moves.map((move, index) => {
                 const moveEval = evalCache[index];
                 const evaluation = moveEval?.after ? formatEval(moveEval.after) : null;
+                const currentScore = moveEval?.after?.score !== undefined ? moveEval.after.score / 100 : undefined;
+                
+                // For the first move, compare against initial position
+                const previousScore = index === 0 
+                  ? 0.18 
+                  : evalCache[index - 1]?.after?.score !== undefined && evalCache[index - 1]?.after !== null
+                    ? evalCache[index - 1].after.score / 100 
+                    : undefined;
+                
+                const deltaValue = currentScore !== undefined && previousScore !== undefined ? 
+                  currentScore - previousScore : null;
+                const delta = deltaValue !== null ? formatDelta(currentScore, previousScore) : null;
+                const quality = getMoveQuality(deltaValue, move.isWhite);
 
                 return (
                   <tr 
@@ -248,6 +289,12 @@ export default function GameMoves({ game }: GameMovesProps) {
                           </button>
                         )}
                       </div>
+                    </td>
+                    <td className="py-2 px-4 font-mono text-right">
+                      {delta}
+                    </td>
+                    <td className={`py-2 px-4 ${quality.color}`}>
+                      {quality.text}
                     </td>
                   </tr>
                 );
