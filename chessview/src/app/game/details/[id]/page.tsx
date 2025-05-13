@@ -45,7 +45,7 @@ export default function GameDetailsPage({ params }: PageProps) {
 
         // Initialize eval cache from cached evaluations
         const initialEvalCache: Record<number, EvalCache> = {};
-        Object.entries(details.cachedEvals).forEach(([fen, eval_]) => {
+        Object.entries(details.evaluations).forEach(([fen, eval_]) => {
           const moveIndex = details.moves.findIndex(m => m.fenAfter === fen);
           if (moveIndex !== -1) {
             initialEvalCache[moveIndex] = {

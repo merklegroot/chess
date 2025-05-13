@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
 export interface GameDetailsResponse {
     id: string;
     moves: GameMoveApiModel[];
-    cachedEvals: Record<string, evalResult>;
+    evaluations: Record<string, evalResult>;
 }
 
 export async function GET(
@@ -50,7 +50,7 @@ export async function GET(
         const response: GameDetailsResponse = {
             id,
             moves: processedMoves,
-            cachedEvals: evaluations
+            evaluations
         };
 
         return NextResponse.json(response);
