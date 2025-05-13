@@ -1,5 +1,7 @@
 import { StockfishConnection } from "@/app/clients/stockfishClient";
 import { evalResult } from "@/models/evalResult";
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 interface evalKey {
     fen: string;
@@ -11,23 +13,58 @@ interface gameEvalKey extends evalKey {
     gameId: string;
 }
 
+// Ensure the eval directory exists
+const EVAL_DIR = path.join(process.cwd(), 'data', 'eval');
+
+async function ensureEvalDir() {
+    try {
+        await fs.access(EVAL_DIR);
+    } catch {
+        await fs.mkdir(EVAL_DIR, { recursive: true });
+    }
+}
 
 function getEvalKeyString(evalKey: evalKey): string {
     return `${evalKey.fen}_${evalKey.depth}_${evalKey.moveTime}`;
 }
 
-// for now, let's store the eval results in a json file.
-// its file name should be based on the gameId.
-// its structure should be a record of a string representation of evalKey -> evalResult
-// the files should be stored in the data/eval directory
+function getEvalFilePath(gameId: string): string {
+    return path.join(EVAL_DIR, `${gameId}.json`);
+}
 
+async function writeEval(gameEvalKey: gameEvalKey, evalResult: evalResult): Promise<void> {
+    await ensureEvalDir();
+    const filePath = getEvalFilePath(gameEvalKey.gameId);
+    
+    // Read existing evals or create new object
+    let evals: Record<string, evalResult> = {};
+    try {
+        const content = await fs.readFile(filePath, 'utf-8');
+        evals = JSON.parse(content);
+    } catch (error) {
+        // File doesn't exist or is invalid, start with empty object
+    }
 
-async function writeEval (gameEvalKey: gameEvalKey, evalResult: evalResult): Promise<void> {
-    throw new Error("Not implemented");
+    // Add new eval
+    const key = getEvalKeyString(gameEvalKey);
+    evals[key] = evalResult;
+
+    // Write back to file
+    await fs.writeFile(filePath, JSON.stringify(evals, null, 2));
 }
 
 async function readEval(gameEvalKey: gameEvalKey): Promise<evalResult | undefined> {
-    throw new Error("Not implemented");
+    try {
+        const filePath = getEvalFilePath(gameEvalKey.gameId);
+        const content = await fs.readFile(filePath, 'utf-8');
+        const evals: Record<string, evalResult> = JSON.parse(content);
+        
+        const key = getEvalKeyString(gameEvalKey);
+        return evals[key];
+    } catch (error) {
+        // File doesn't exist or is invalid
+        return undefined;
+    }
 }
 
 async function getCacheableEval(connection: StockfishConnection, evalKey: gameEvalKey): Promise<evalResult> {
