@@ -33,6 +33,83 @@ alwaysApply: true
 # Exception: When a model directly represents an external schema (e.g., database, API)
 # that requires a different convention, match that convention instead.
 
+# Component Logic Separation
+# React components should focus on presentation and user interaction handling.
+# Business logic, data transformation, and complex operations should be moved outside
+# the component when possible.
+#
+# Guidelines:
+# 1. Components should primarily handle:
+#    - Rendering UI elements
+#    - Managing component-specific state
+#    - Handling user interactions
+#    - Coordinating with parent components
+#
+# 2. Extract to separate files/functions:
+#    - Data processing and transformation
+#    - Business logic and validation
+#    - API interaction logic
+#    - Complex calculations
+#    - Utility functions used by multiple components
+#
+# Example:
+#   // Bad: Logic embedded in component
+#   function ChessBoard() {
+#     function calculateValidMoves(position) {
+#       // Complex chess logic here
+#     }
+#     return <div>...</div>
+#   }
+#
+#   // Good: Logic extracted to service
+#   // chessLogic.ts
+#   export function calculateValidMoves(position) {
+#     // Complex chess logic here
+#   }
+#
+#   // ChessBoard.tsx
+#   import { calculateValidMoves } from './chessLogic';
+#   function ChessBoard() {
+#     // Only uses the logic, doesn't implement it
+#     return <div>...</div>
+#   }
+#
+# Benefits:
+# - Improved testability of business logic
+# - Better code reuse
+# - Clearer component responsibilities
+# - Easier maintenance and refactoring
+# - Better separation of concerns
+
+# Singleton Pattern Usage
+# Use singletons sparingly and only when there is a compelling reason. Valid use cases include:
+# - Managing shared resources (e.g., database connections, cache instances)
+# - Enforcing exactly one instance of a service (e.g., logging service, configuration manager)
+# - Coordinating state across an application
+#
+# When implementing a singleton:
+# 1. Document WHY a singleton is necessary for this specific case
+# 2. Consider whether dependency injection would be a better alternative
+# 3. Ensure thread-safety if the singleton manages mutable state
+# 4. Consider the impact on testing and whether the singleton can be mocked
+#
+# Example of justified singleton use:
+#   // Database connection pool - singleton is appropriate because:
+#   // 1. We want to limit the total number of connections
+#   // 2. The connection configuration is application-wide
+#   // 3. Creating multiple instances would waste resources
+#   class DatabasePool {
+#     private static instance: DatabasePool;
+#     private constructor() { ... }
+#     
+#     static getInstance(): DatabasePool {
+#       if (!DatabasePool.instance) {
+#         DatabasePool.instance = new DatabasePool();
+#       }
+#       return DatabasePool.instance;
+#     }
+#   }
+
 context {
     always = true
 }
@@ -82,4 +159,4 @@ rule "test-file-organization" {
     }
 }
 
-apply "test-file-organization" 
+apply "test-file-organization"
