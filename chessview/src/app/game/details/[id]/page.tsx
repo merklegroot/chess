@@ -8,9 +8,19 @@ import { apiClient } from '@/app/clients/apiClient/apiClient';
 import { useEffect, useState, use } from 'react';
 import { chessGameModel } from '@/models/chessGameModel';
 import { GameDetailsResponse } from '@/app/api/game-details/[id]/route';
+import { evalResult } from '@/models/evalResult';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+interface EvalResult extends evalResult {
+  fen: string;
+}
+
+interface EvalCache {
+  before: EvalResult | null;
+  after: EvalResult | null;
 }
 
 export default function GameDetailsPage({ params }: PageProps) {
@@ -18,6 +28,9 @@ export default function GameDetailsPage({ params }: PageProps) {
   const [game, setGame] = useState<chessGameModel | null>(null);
   const [gameDetails, setGameDetails] = useState<GameDetailsResponse | null>(null);
   const [error, setError] = useState<boolean>(false);
+  const [evalCache, setEvalCache] = useState<Record<number, EvalCache>>({});
+  const [isEvaluatingAll, setIsEvaluatingAll] = useState(false);
+  const [evaluationProgress, setEvaluationProgress] = useState({ current: 0, total: 0 });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,6 +42,19 @@ export default function GameDetailsPage({ params }: PageProps) {
         // Fetch detailed game data including evaluations
         const details = await apiClient.getGameDetails(id);
         setGameDetails(details);
+
+        // Initialize eval cache from cached evaluations
+        const initialEvalCache: Record<number, EvalCache> = {};
+        Object.entries(details.cachedEvals).forEach(([fen, eval_]) => {
+          const moveIndex = details.moves.findIndex(m => m.fenAfter === fen);
+          if (moveIndex !== -1) {
+            initialEvalCache[moveIndex] = {
+              before: null,
+              after: { ...eval_, fen }
+            };
+          }
+        });
+        setEvalCache(initialEvalCache);
       } catch (error) {
         console.error('Error fetching game data:', error);
         setError(true);
@@ -37,6 +63,62 @@ export default function GameDetailsPage({ params }: PageProps) {
 
     fetchData();
   }, [id]);
+
+  const handleEvaluatePosition = async (fen: string, type: 'before' | 'after', moveNumber: number, isWhite: boolean) => {
+    try {
+      const params = new URLSearchParams({
+        gameId: id,
+        fen,
+        depth: '15',
+        moveTime: '1000'
+      });
+
+      const response = await fetch(`/api/eval-cache?${params}`);
+      if (!response.ok) {
+        throw new Error(`Failed to get evaluation: ${response.statusText}`);
+      }
+
+      const evalResult = await response.json();
+      const evalResultWithFen: EvalResult = {
+        ...evalResult,
+        fen
+      };
+
+      // Calculate the correct index based on move number and color
+      const moveIndex = (moveNumber - 1) * 2 + (isWhite ? 0 : 1);
+      handleUpdateEvalCache(moveIndex, type, evalResultWithFen);
+    } catch (err) {
+      console.error('Error getting evaluation:', err);
+    }
+  };
+
+  const handleEvaluateAll = async () => {
+    if (!gameDetails) return;
+
+    setIsEvaluatingAll(true);
+    const totalEvaluations = gameDetails.moves.length;
+    setEvaluationProgress({ current: 0, total: totalEvaluations });
+
+    try {
+      for (const move of gameDetails.moves) {
+        await handleEvaluatePosition(move.fenAfter, 'after', move.number, move.isWhite);
+        setEvaluationProgress(prev => ({ ...prev, current: prev.current + 1 }));
+      }
+    } finally {
+      setIsEvaluatingAll(false);
+      setEvaluationProgress({ current: 0, total: 0 });
+    }
+  };
+
+  const handleUpdateEvalCache = (moveIndex: number, type: 'before' | 'after', evalResult: EvalResult) => {
+    setEvalCache(prev => ({
+      ...prev,
+      [moveIndex]: {
+        ...prev[moveIndex],
+        [type]: evalResult
+      }
+    }));
+  };
 
   if (error) {
     return (
@@ -76,8 +158,13 @@ export default function GameDetailsPage({ params }: PageProps) {
         {/* Game Moves */}
         <GameMoves 
           game={game} 
-          initialEvals={gameDetails.cachedEvals}
           processedMoves={gameDetails.moves}
+          evalCache={evalCache}
+          isEvaluatingAll={isEvaluatingAll}
+          evaluationProgress={evaluationProgress}
+          onEvaluateAllPress={handleEvaluateAll}
+          onEvaluatePosition={handleEvaluatePosition}
+          onUpdateEvalCache={handleUpdateEvalCache}
         />
 
         {/* Game Analysis */}
