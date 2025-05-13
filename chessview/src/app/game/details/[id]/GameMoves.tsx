@@ -7,8 +7,12 @@ import MoveDetails from './MoveDetails';
 import { useParams } from 'next/navigation';
 import { evalResult } from '@/models/evalResult';
 
-interface GameMovesProps {
-  game: chessGameModel;
+interface GameMove {
+  number: number;
+  isWhite: boolean;
+  move: string;
+  fenBefore: string;
+  fenAfter: string;
 }
 
 interface EvalResult extends evalResult {
@@ -42,17 +46,36 @@ function getPieceSymbol(move: string, isWhite: boolean): string {
   return pieceSymbols['P'][isWhite ? 'white' : 'black'];
 }
 
-export default function GameMoves({ game }: GameMovesProps) {
+interface GameMovesProps {
+  game: chessGameModel;
+  initialEvals?: Record<string, evalResult>;
+  processedMoves?: GameMove[];
+}
+
+export default function GameMoves({ game, initialEvals = {}, processedMoves }: GameMovesProps) {
   const params = useParams();
   const gameId = params.id as string;
   const [selectedMove, setSelectedMove] = useState<number | null>(null);
   const [fenCache, setFenCache] = useState<{[index: number]: { before: string, after: string }}>({});
-  const [evalCache, setEvalCache] = useState<{[index: number]: EvalCache}>({});
+  const [evalCache, setEvalCache] = useState<{[index: number]: EvalCache}>(
+    // Convert initialEvals to our internal format if provided
+    Object.entries(initialEvals).reduce((acc, [fen, eval_]) => {
+      // Find the move index that matches this FEN
+      const moveIndex = processedMoves?.findIndex(m => m.fenAfter === fen) ?? -1;
+      if (moveIndex !== -1) {
+        acc[moveIndex] = {
+          before: null,
+          after: { ...eval_, fen }
+        };
+      }
+      return acc;
+    }, {} as {[index: number]: EvalCache})
+  );
   const [isEvaluatingAll, setIsEvaluatingAll] = useState(false);
   const [evaluationProgress, setEvaluationProgress] = useState({ current: 0, total: 0 });
 
-  // Create array of all moves with their details including FEN positions
-  const moves = game.moves.map((move, index) => {
+  // Use processedMoves if provided, otherwise calculate them
+  const moves = processedMoves || game.moves.map((move, index) => {
     // Check if FEN positions are already cached
     if (fenCache[index]) {
       return {

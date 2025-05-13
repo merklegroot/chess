@@ -1,6 +1,6 @@
 import { StockfishConnection } from "@/app/clients/stockfishClient";
 import { evalResult } from "@/models/evalResult";
-import * as fs from 'fs/promises';
+import fs, { promises as fsPromises } from 'fs';
 import * as path from 'path';
 
 interface evalKey {
@@ -18,9 +18,9 @@ const EVAL_DIR = path.join(process.cwd(), 'data', 'eval');
 
 async function ensureEvalDir() {
     try {
-        await fs.access(EVAL_DIR);
+        await fsPromises.access(EVAL_DIR);
     } catch {
-        await fs.mkdir(EVAL_DIR, { recursive: true });
+        await fsPromises.mkdir(EVAL_DIR, { recursive: true });
     }
 }
 
@@ -39,7 +39,7 @@ async function writeEval(gameEvalKey: gameEvalKey, evalResult: evalResult): Prom
     // Read existing evals or create new object
     let evals: Record<string, evalResult> = {};
     try {
-        const content = await fs.readFile(filePath, 'utf-8');
+        const content = await fsPromises.readFile(filePath, 'utf-8');
         evals = JSON.parse(content);
     } catch (error) {
         // File doesn't exist or is invalid, start with empty object
@@ -50,13 +50,28 @@ async function writeEval(gameEvalKey: gameEvalKey, evalResult: evalResult): Prom
     evals[key] = evalResult;
 
     // Write back to file
-    await fs.writeFile(filePath, JSON.stringify(evals, null, 2));
+    await fsPromises.writeFile(filePath, JSON.stringify(evals, null, 2));
+}
+
+async function readEvalFileForGameId(gameId: string): Promise<Record<string, evalResult>> {
+    try {
+        const filePath = getEvalFilePath(gameId);
+
+        if (!fs.existsSync(filePath))
+            return {};        
+
+        const content = await fsPromises.readFile(filePath, 'utf-8');
+        return JSON.parse(content);
+    } catch (error) {
+        // File doesn't exist or is invalid
+        return {};
+    }
 }
 
 async function readEval(gameEvalKey: gameEvalKey): Promise<evalResult | undefined> {
     try {
         const filePath = getEvalFilePath(gameEvalKey.gameId);
-        const content = await fs.readFile(filePath, 'utf-8');
+        const content = await fsPromises.readFile(filePath, 'utf-8');
         const evals: Record<string, evalResult> = JSON.parse(content);
         
         const key = getEvalKeyString(gameEvalKey);
@@ -100,6 +115,11 @@ async function doWork(connection: StockfishConnection, evalKey: evalKey): Promis
     return evalResult;
 }
 
+async function getAllCachedEvals(gameId: string): Promise<Record<string, evalResult>> {
+    return readEvalFileForGameId(gameId);
+}
+
 export const evaluationRepo = {
-    getCacheableEvaluation
+    getCacheableEvaluation,
+    getAllCachedEvals
 }

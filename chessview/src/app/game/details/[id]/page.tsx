@@ -1,20 +1,56 @@
+'use client';
+
 import Link from 'next/link';
 import AnalyzeButton from './AnalyzeButton';
 import GameSummary from './GameSummary';
 import GameMoves from './GameMoves';
 import { apiClient } from '@/app/clients/apiClient/apiClient';
+import { useEffect, useState } from 'react';
+import { chessGameModel } from '@/models/chessGameModel';
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
-export default async function GameDetailsPage({ params }: PageProps) {
-  const { id } = await params;
-  
-  let game;
-  try {
-    game = await apiClient.getGameById(id);
-  } catch (error) {
+interface GameDetails {
+  id: string;
+  moves: {
+    number: number;
+    isWhite: boolean;
+    move: string;
+    fenBefore: string;
+    fenAfter: string;
+  }[];
+  cachedEvals: Record<string, any>;
+}
+
+export default function GameDetailsPage({ params }: PageProps) {
+  const [game, setGame] = useState<chessGameModel | null>(null);
+  const [gameDetails, setGameDetails] = useState<GameDetails | null>(null);
+  const [error, setError] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch basic game data
+        const gameData = await apiClient.getGameById(params.id);
+        setGame(gameData);
+
+        // Fetch detailed game data including evaluations
+        const response = await fetch(`/api/game-details/${params.id}?moves=${gameData.moves.join(',')}`);
+        if (!response.ok) throw new Error('Failed to fetch game details');
+        const details = await response.json();
+        setGameDetails(details);
+      } catch (error) {
+        console.error('Error fetching game data:', error);
+        setError(true);
+      }
+    };
+
+    fetchData();
+  }, [params.id]);
+
+  if (error) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white shadow rounded-lg p-4">
@@ -22,6 +58,16 @@ export default async function GameDetailsPage({ params }: PageProps) {
           <Link href="/game/list" className="text-blue-600 hover:text-blue-800">
             ← Back to Games
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!game || !gameDetails) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="bg-white shadow rounded-lg p-4">
+          <h1 className="text-2xl font-bold mb-4">Loading...</h1>
         </div>
       </div>
     );
@@ -40,7 +86,11 @@ export default async function GameDetailsPage({ params }: PageProps) {
         <GameSummary game={game} />
 
         {/* Game Moves */}
-        <GameMoves game={game} />
+        <GameMoves 
+          game={game} 
+          initialEvals={gameDetails.cachedEvals}
+          processedMoves={gameDetails.moves}
+        />
 
         {/* Game Analysis */}
         <div className="bg-white shadow rounded-lg p-6">
