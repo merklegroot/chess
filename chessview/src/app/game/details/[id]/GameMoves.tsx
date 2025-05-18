@@ -72,6 +72,7 @@ export default function GameMoves({
   const [selectedMove, setSelectedMove] = useState<number | null>(null);
   const [fenCache, setFenCache] = useState<{[index: number]: { before: string, after: string }}>({});
   const [showRawMoves, setShowRawMoves] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
   const [evaluations, setEvaluations] = useState<Record<number, EvalCache>>(initialEvaluations);
 
   // Update evaluations when props change
@@ -165,10 +166,33 @@ export default function GameMoves({
     <>
       {/* TEMPORARY: Evaluations debug display */}
       <div className="mb-4 p-4 bg-yellow-50 border-2 border-yellow-300 rounded">
-        <div className="font-bold text-yellow-800 mb-2">DEBUG: Evaluations Object</div>
-        <pre className="font-mono text-sm overflow-auto">
-          {JSON.stringify(evaluations, null, 2)}
-        </pre>
+        <div className="flex justify-between items-center mb-2">
+          <div className="font-bold text-yellow-800">DEBUG: Evaluations Object</div>
+          <button
+            onClick={() => setShowDebug(!showDebug)}
+            className="p-1 text-yellow-800 rounded-full hover:bg-yellow-200 transition-transform duration-200"
+            style={{ transform: showDebug ? 'rotate(-180deg)' : 'rotate(0deg)' }}
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+        {showDebug && (
+          <pre className="font-mono text-sm overflow-auto">
+            {JSON.stringify(evaluations, null, 2)}
+          </pre>
+        )}
       </div>
 
       <div className="bg-white shadow rounded-lg p-6">
