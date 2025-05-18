@@ -15,9 +15,10 @@ export interface GameDetailsResponse {
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ): Promise<NextResponse<GameDetailsResponse | { error: string }>> {
     try {
+        const params = await context.params;
         if (!params?.id) {
             return NextResponse.json({ error: 'Game ID is required' }, { status: 400 });
         }
