@@ -60,7 +60,7 @@ interface GameMovesProps {
 export default function GameMoves({ 
   game, 
   processedMoves, 
-  evaluations,
+  evaluations: initialEvaluations,
   isEvaluatingAll,
   evaluationProgress,
   onEvaluateAllPress,
@@ -72,6 +72,14 @@ export default function GameMoves({
   const [selectedMove, setSelectedMove] = useState<number | null>(null);
   const [fenCache, setFenCache] = useState<{[index: number]: { before: string, after: string }}>({});
   const [showRawMoves, setShowRawMoves] = useState(false);
+  const [evaluations, setEvaluations] = useState<Record<number, EvalCache>>(initialEvaluations);
+
+  // Update evaluations when props change
+  useEffect(() => {
+    if (Object.keys(initialEvaluations).length > 0) {
+      setEvaluations(initialEvaluations);
+    }
+  }, [initialEvaluations]);
 
   // Use processedMoves if provided, otherwise calculate them
   const moves = processedMoves || game.moves.map((move, index) => {
@@ -199,9 +207,11 @@ export default function GameMoves({
                 <th className="py-2 px-4 text-left">White</th>
                 <th className="py-2 px-4 text-left">Eval</th>
                 <th className="py-2 px-4 text-left">Quality</th>
+                <th className="py-2 px-4 text-left">Action</th>
                 <th className="py-2 px-4 text-left">Black</th>
                 <th className="py-2 px-4 text-left">Eval</th>
                 <th className="py-2 px-4 text-left">Quality</th>
+                <th className="py-2 px-4 text-left">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -212,7 +222,10 @@ export default function GameMoves({
                 const blackMoveIndex = i * 2 + 1;
 
                 const whiteEval = evaluations[whiteMoveIndex]?.after;
-                const prevWhiteEval = whiteMoveIndex > 0 ? evaluations[whiteMoveIndex - 1]?.after : null;
+                // For the first move, compare against standard starting position eval of +0.18
+                const prevWhiteEval = whiteMoveIndex === 0 ? 
+                  { score: 18, depth: 0 } : // +0.18 in centipawns
+                  whiteMoveIndex > 0 ? evaluations[whiteMoveIndex - 1]?.after : null;
                 const whiteDelta = formatDelta(whiteEval?.score, prevWhiteEval?.score);
                 const whiteQuality = getMoveQuality(whiteDelta, true);
 
@@ -234,6 +247,15 @@ export default function GameMoves({
                     </td>
                     <td className="py-2 px-4">{formatEval(whiteEval)}</td>
                     <td className={`py-2 px-4 ${whiteQuality.color}`}>{whiteQuality.text}</td>
+                    <td className="py-2 px-4">
+                      <button
+                        onClick={() => onEvaluatePosition(whiteMove.fenAfter, 'after', whiteMoveIndex, true)}
+                        className="px-2 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                        disabled={isEvaluatingAll}
+                      >
+                        Evaluate
+                      </button>
+                    </td>
                     {blackMove ? (
                       <>
                         <td 
@@ -247,9 +269,19 @@ export default function GameMoves({
                         </td>
                         <td className="py-2 px-4">{formatEval(blackEval)}</td>
                         <td className={`py-2 px-4 ${blackQuality.color}`}>{blackQuality.text}</td>
+                        <td className="py-2 px-4">
+                          <button
+                            onClick={() => onEvaluatePosition(blackMove.fenAfter, 'after', blackMoveIndex, false)}
+                            className="px-2 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                            disabled={isEvaluatingAll}
+                          >
+                            Evaluate
+                          </button>
+                        </td>
                       </>
                     ) : (
                       <>
+                        <td className="py-2 px-4"></td>
                         <td className="py-2 px-4"></td>
                         <td className="py-2 px-4"></td>
                         <td className="py-2 px-4"></td>

@@ -64,7 +64,7 @@ export default function GameDetailsPage({ params }: PageProps) {
     fetchData();
   }, [id]);
 
-  const handleEvaluatePosition = async (fen: string, type: 'before' | 'after', moveNumber: number, isWhite: boolean) => {
+  const handleEvaluatePosition = async (fen: string, type: 'before' | 'after', moveIndex: number, isWhite: boolean) => {
     try {
       const params = new URLSearchParams({
         gameId: id,
@@ -84,9 +84,14 @@ export default function GameDetailsPage({ params }: PageProps) {
         fen
       };
 
-      // Calculate the correct index based on move number and color
-      const moveIndex = (moveNumber - 1) * 2 + (isWhite ? 0 : 1);
-      handleUpdateEvalCache(moveIndex, type, evalResultWithFen);
+      // Update evaluations state
+      setEvaluations(prev => ({
+        ...prev,
+        [moveIndex]: {
+          ...prev[moveIndex],
+          [type]: evalResultWithFen
+        }
+      }));
     } catch (err) {
       console.error('Error getting evaluation:', err);
     }
@@ -100,8 +105,9 @@ export default function GameDetailsPage({ params }: PageProps) {
     setEvaluationProgress({ current: 0, total: totalEvaluations });
 
     try {
-      for (const move of gameDetails.moves) {
-        await handleEvaluatePosition(move.fenAfter, 'after', move.number, move.isWhite);
+      for (let i = 0; i < gameDetails.moves.length; i++) {
+        const move = gameDetails.moves[i];
+        await handleEvaluatePosition(move.fenAfter, 'after', i, i % 2 === 0);
         setEvaluationProgress(prev => ({ ...prev, current: prev.current + 1 }));
       }
     } finally {
@@ -152,9 +158,9 @@ export default function GameDetailsPage({ params }: PageProps) {
   Object.entries(gameDetails.evaluations).forEach(([key, eval_]) => {
     // The key format is "FEN_depth_moveTime", we just want the FEN part
     const fen = key.split('_')[0];
-    console.log('Processing FEN:', fen);
+    
+    // Find the move that resulted in this position
     const moveIndex = gameDetails.moves.findIndex(m => m.fenAfter === fen);
-    console.log('Found at move index:', moveIndex);
     if (moveIndex !== -1) {
       transformedEvaluations[moveIndex] = {
         before: null,
@@ -163,7 +169,13 @@ export default function GameDetailsPage({ params }: PageProps) {
     }
   });
 
-  console.log('Transformed evaluations:', transformedEvaluations);
+  // Merge with any new evaluations
+  const finalEvaluations = {
+    ...transformedEvaluations,
+    ...evaluations
+  };
+
+  console.log('Transformed evaluations:', finalEvaluations);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -181,7 +193,7 @@ export default function GameDetailsPage({ params }: PageProps) {
         <GameMoves 
           game={game} 
           processedMoves={gameDetails.moves}
-          evaluations={transformedEvaluations}
+          evaluations={finalEvaluations}
           isEvaluatingAll={isEvaluatingAll}
           evaluationProgress={evaluationProgress}
           onEvaluateAllPress={handleEvaluateAll}
