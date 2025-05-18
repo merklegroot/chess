@@ -18,7 +18,7 @@ async function getGameById(id: string): Promise<chessGameModel> {
 }
 
 async function getGameDetails(id: string): Promise<GameDetailsResponse> {
-  const response = await fetch(`/api/game-details/${id}`, {
+  const response = await fetch(`/api/game-details/${encodeURIComponent(id)}`, {
     cache: 'no-store'
   });
 

@@ -18,7 +18,11 @@ export async function GET(
     { params }: { params: { id: string } }
 ): Promise<NextResponse<GameDetailsResponse | { error: string }>> {
     try {
-        const { id } = params;
+        if (!params?.id) {
+            return NextResponse.json({ error: 'Game ID is required' }, { status: 400 });
+        }
+
+        const id = params.id;
         
         // Get all cached evaluations for this game
         const evaluations = await evaluationRepo.getAllCachedEvals(id);

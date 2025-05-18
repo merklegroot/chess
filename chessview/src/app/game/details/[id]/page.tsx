@@ -34,6 +34,11 @@ export default function GameDetailsPage({ params }: PageProps) {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!id) {
+        setError(true);
+        return;
+      }
+
       try {
         // Fetch basic game data
         const gameData = await apiClient.getGameById(id);
