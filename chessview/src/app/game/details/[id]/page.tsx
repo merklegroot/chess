@@ -41,11 +41,11 @@ export default function GameDetailsPage({ params }: PageProps) {
 
       try {
         // Fetch basic game data
-        const gameData = await apiClient.getGameById(id);
+        const gameData: chessGameModel = await apiClient.getGameById(id);
         setGame(gameData);
 
         // Fetch detailed game data including evaluations
-        const details = await apiClient.getGameDetails(id);
+        const details: GameDetailsResponse = await apiClient.getGameDetails(id);
         setGameDetails(details);
 
         // Initialize eval cache from cached evaluations

@@ -119,7 +119,33 @@ async function getAllCachedEvals(gameId: string): Promise<Record<string, evalRes
     return readEvalFileForGameId(gameId);
 }
 
+async function getEvalByFen(fen: string): Promise<evalResult | undefined> {
+    try {
+        // Read all game evaluation files
+        const files = await fsPromises.readdir(EVAL_DIR);
+        const evalFiles = files.filter(f => f.startsWith('game_') && f.endsWith('.json'));
+
+        // Search through all files for the FEN
+        for (const file of evalFiles) {
+            const content = await fsPromises.readFile(path.join(EVAL_DIR, file), 'utf-8');
+            const evals: Record<string, evalResult> = JSON.parse(content);
+            
+            // Find the first evaluation that matches the FEN
+            const matchingKey = Object.keys(evals).find(key => key.startsWith(fen + '_'));
+            if (matchingKey) {
+                return evals[matchingKey];
+            }
+        }
+        
+        return undefined;
+    } catch (error) {
+        console.error('Error getting evaluation by FEN:', error);
+        return undefined;
+    }
+}
+
 export const evaluationRepo = {
     getCacheableEvaluation,
-    getAllCachedEvals
+    getAllCachedEvals,
+    getEvalByFen
 }

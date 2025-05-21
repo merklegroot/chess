@@ -68,11 +68,12 @@ export default async function GameListPage() {
           <div className="text-gray-600 p-3">No games found.</div>
         ) : (
           <>
-            <div className="grid grid-cols-[4rem_7rem_1fr_auto] gap-4 px-4 py-2 bg-gray-50 border-y border-gray-200 font-medium text-gray-600">
+            <div className="grid grid-cols-[4rem_7rem_1fr_auto_auto] gap-4 px-4 py-2 bg-gray-50 border-y border-gray-200 font-medium text-gray-600">
               <div>Color</div>
               <div>Result</div>
               <div>Vs.</div>
               <div>Date</div>
+              <div>View</div>
             </div>
             <div className="divide-y divide-gray-200">
               {games.map((game, index) => {
@@ -84,27 +85,44 @@ export default async function GameListPage() {
                 const rowColorClass = getRowColorClass(game.result, game.white, username);
                 
                 return (
-                  <Link 
-                    href={`/game/details/${index}`}
+                  <div 
                     key={index} 
-                    className={`grid grid-cols-[4rem_7rem_1fr_auto] gap-4 px-4 py-2 transition-colors items-center ${rowColorClass}`}
+                    className={`grid grid-cols-[4rem_7rem_1fr_auto_auto] gap-4 px-4 py-2 transition-colors items-center ${rowColorClass}`}
                   >
-                    <div className="text-xl">
+                    <Link 
+                      href={`/game/details/${index}`}
+                      className="text-xl"
+                    >
                       {getColorIcon(isUserWhite)}
-                    </div>
-                    <div className={`font-medium ${result.color} flex items-center gap-2`}>
+                    </Link>
+                    <Link 
+                      href={`/game/details/${index}`}
+                      className={`font-medium ${result.color} flex items-center gap-2`}
+                    >
                       <span className="w-5 text-center">{result.emoji}</span>
                       <span>{result.text}</span>
-                    </div>
-                    <div className="flex items-center">
+                    </Link>
+                    <Link 
+                      href={`/game/details/${index}`}
+                      className="flex items-center"
+                    >
                       <span className="w-5 text-xl mr-3">{getColorIcon(!isUserWhite)}</span>
                       <span className="font-medium">{opponent}</span>
                       {isDraw && <span className="text-gray-500 text-sm ml-2">(Draw)</span>}
-                    </div>
-                    <div className="text-sm text-gray-600 tabular-nums">
+                    </Link>
+                    <Link 
+                      href={`/game/details/${index}`}
+                      className="text-sm text-gray-600 tabular-nums"
+                    >
                       {new Date(game.date).toISOString().split('T')[0]}
-                    </div>
-                  </Link>
+                    </Link>
+                    <Link
+                      href={`/game/better/${index}`}
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      Better View
+                    </Link>
+                  </div>
                 );
               })}
             </div>
