@@ -105,6 +105,10 @@ export class StockfishConnection {
         return this.sendCommand('uci');
     }
 
+    async sendUciNewGame(): Promise<string[]> {
+        return this.sendCommand('ucinewgame');
+    }
+
     /**
      * Check if the engine is ready.
      * Waits for 'readyok' response.
@@ -129,7 +133,8 @@ export class StockfishConnection {
         const { fen, moves } = options;
         const fenPart = fen ? `fen ${fen}` : 'startpos';
         const movesPart = moves && moves.length > 0 ? ` moves ${moves.join(' ')}` : '';
-        await this.sendCommand(`position ${fenPart}${movesPart}`);
+        const commandText = `position ${fenPart}${movesPart}`;
+        await this.sendCommand(commandText);
     }
 
     /**
@@ -292,13 +297,13 @@ export class StockfishConnection {
         });
     }
 
-    private async ensureConnected(): Promise<void> {
+    public async ensureConnected(): Promise<void> {
         if (!this.isConnected || !this.ws) {
             await this.connect();
         }
     }
 
-    private sendEvent(event: StockfishEvent): void {
+    public sendEvent(event: StockfishEvent): void {
         if (!this.ws) {
             throw new Error('WebSocket not connected');
         }
